@@ -34,16 +34,16 @@ mkdir -p /appl/pgsql/15/
 cd /appl/pgsql/15
 sudo /usr/pgsql-15/bin/initdb --pgdata=/appl/pgsql/15/data --localeprovider=icu --icu-locale=en_US.UTF-8  
 
-# To start PostgreSQL
+To start PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile start 
 
-# To stop PostgreSQL
+To stop PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile stop
 
-# To restart PostgreSQL
+To restart PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile restart 
 
-# To reload the PostgreSQL configuration without restart 
+To reload the PostgreSQL configuration without restart 
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile reload
 
 4. To create, to list, to connect to a new database in PostgreSQL (Windows, or Mac, or Linux)
@@ -57,7 +57,6 @@ postgres=# \c my_db
 
 Chapter 3:
 
-# To create a user / role
 postgres=# CREATE USER my_user; 
 postgres=# ALTER ROLE my_user WITH ENCRYPTED PASSWORD 'my_pass'; 
 postgres=# CREATE DATABASE my_db; 
@@ -66,27 +65,18 @@ postgres=# ALTER DATABASE my_db OWNER TO my_user;
 postgres=# \q
 
 
-# sample pg_hba.conf entries that enable SSL
+sample pg_hba.conf entries that enable SSL
 
-# A specific IP 
 hostssl  all   all   192.168.0.100/32   md5  
-# A specific network subnet  
 hostssl  all   all   192.168.0.0/24     md5 
-# A specific database from subnet 192.168.0.0 
 hostssl  my_db all   192.168.0.0/24     md5 
-# A specific user  from subnet 192.168.0.0 
 hostssl  all   userA  192.168.0.0/24    md5
-# A specific user on a specific database from a subnet 192.168.0.0
 hostssl  my_db  userA  192.168.0.0/24  md5 
 
-# to test PSQL with SSL
+to test PSQL with SSL
 /usr/pgsql-15/bin/psql -h localhost -d my_db -U my_user 
 
-
-# To create a sample table
-postgres=# \c my_db
-
-ny_db=# CREATE TABLE books  ( 
+CREATE TABLE books  ( 
 book_id SERIAL PRIMARY KEY,  
 title VARCHAR(100) NOT NULL,     
 author VARCHAR(100) NOT NULL,     
@@ -95,16 +85,16 @@ genre VARCHAR(50),
 qty INTEGER, 
 unit_price DECIMAL );
 
-# To insert test record
+To insert test record
 my_db=# INSERT INTO books  
 (title, author, publication_year, genre)  
 VALUES ('To Kill a Mockingbird', 'Harper Lee', 1960, 'Fiction'); 
 
-# To retrieve the record:
+To retrieve the record:
 my_db=# SELECT * FROM books; 
 
 
-# Command to generate a keystore that supports AES256
+Command to generate a keystore that supports AES256
 
 cd /appl/keystore 
 
@@ -137,7 +127,7 @@ TABLESPACE tbs_encrypt_zone;
 
 Chapter 4
 
-# Manually set a checkpoint
+Manually set a checkpoint
 pg_ctl checkpoint -D /appl/pgsql/15/data 
 
 or
@@ -248,8 +238,6 @@ CREATE ROLE fiction_group;
 
 ALTER ROLE Fiction IN GROUP fiction_group; 
 
-\c postgres 
-
 CREATE POLICY fiction_policy ON books  
 FOR ALL  TO  PUBLIC  USING (genre=current_user); 
 
@@ -297,8 +285,7 @@ ALTER ROLE username CONNECTION LIMIT 1;
 
 ALTER ROLE username CONNECTION LIMIT DEFAULT; 
 
-
-# Sample pg_hba.conf entry to reject a connection
+Sample pg_hba.conf entry to reject a connection
 #TYPE 	DATABASE 	USER 	  ADDRESS 	  METHOD 
 host 	  all 		  peter 	0.0.0.0/0 	reject 
 
@@ -1245,24 +1232,23 @@ data BYTEA
 
 import psycopg2 from psycopg2 import sql 
 
-# Open connection to PostgreSQL database 
+
 conn = psycopg2.connect(
      host="localhost",
      database="my_db",
      user="my_user",
      password="my_password" ) 
 
-# Open file and read binary data with open("/appl/image.png", "rb") as f:
+open("/appl/image.png", "rb") as f:
      image_data = f.read() 
 
-# Insert binary data into database with conn.cursor() as cur:     
+conn.cursor() as cur:     
 query = sql.SQL("INSERT INTO images (name, data) VALUES (%s, %s)")   
 
 cur.execute(query, ("/appl/image.png", psycopg2.Binary(image_data)))     
 
 conn.commit() 
-# Close connection conn.close()
-
+conn.close()
 
 
 
@@ -1365,11 +1351,10 @@ id SERIAL PRIMARY KEY,
 content TEXT 
 ); 
 
-
 CREATE TEXT SEARCH CONFIGURATION english (COPY= simple ); 
 
 CREATE TEXT SEARCH DICTIONARY my_english_st ( TEMPLATE = pg_catalog.simple, 
-  STOPWORDS = english 
+STOPWORDS = english 
 ); 
 
 CREATE EXTENSION pg_trgm;  
@@ -1402,7 +1387,8 @@ publication_year,
 genre, 
 movie_xml)  
 VALUES 
-('The Great Gatsby', 'F. Scott Fitzgerald', 1925, 'Literary Fiction',   XML '<movie><episode>Episode 1</episode><episode>Episode 2</ episode></movie>'); 
+('The Great Gatsby', 'F. Scott Fitzgerald', 1925, 'Literary Fiction',   
+XML '<movie><episode>Episode 1</episode><episode>Episode 2</ episode></movie>'); 
 
 SELECT xpath('/movie/episode/text()', movie_xml) 
 FROM movies  
@@ -1582,9 +1568,9 @@ VALUES
 
 INSERT INTO orders (product_id, price, sales_amount, sales_qty, order_date) 
 VALUES  
-       (1, 99.99, 585941.40, 5860, '2023-04-05'), 
-       (2, 79.99, 391151.10, 4890, '2023-04-04'), 
-       (3, 89.99, 340162.20, 3780, '2023-04-03'); 
+(1, 99.99, 585941.40, 5860, '2023-04-05'), 
+(2, 79.99, 391151.10, 4890, '2023-04-04'), 
+(3, 89.99, 340162.20, 3780, '2023-04-03'); 
 
 WITH sales_by_product AS ( 
 SELECT name, SUM(sales_amount) AS total_sales 
@@ -1654,7 +1640,6 @@ GROUPING SETS (
 )
 ORDER BY  orders.order_date; 
 
-
 CREATE OR REPLACE 
 FUNCTION avg_price_sfunc(numeric[], numeric) 
 RETURNS numeric[] AS $$ 
@@ -1694,37 +1679,6 @@ CONCURRENTLY idx_book_titles;
 
 REINDEX INDEX 
 CONCURRENTLY books; 
-
-/usr/pgsql-15/bin/pg_controldata -D /appl/pgsql/15/data/ 
-
-
----
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <ecpglib.h> 
-/* ECPG program */ 
-EXEC SQL BEGIN 
-DECLARE SECTION; 
-int emp_id; 
-char emp_name[100]; 
-EXEC SQL END DECLARE SECTION; 
-int main() { 
-   /* Connect to the PostgreSQL database */
-   EXEC SQL CONNECT TO mydb; 
-   /* Fetch employee details from the database */ 
-   EXEC SQL SELECT emp_id, emp_name INTO :emp_id, :emp_name 
-      FROM employees WHERE emp_id = 1001; 
-   /* Display employee details */ 
-   printf("Employee ID: %d\n", emp_id);    
-   printf("Employee Name: %s\n", emp_name); 
-   /* Disconnect from the database */ 
-   EXEC SQL COMMIT;       
-   EXEC SQL DISCONNECT; 
-return();}
-   
----
-
-
 
 CREATE EXTENSION IF NOT EXISTS anon CASCADE;  
 
