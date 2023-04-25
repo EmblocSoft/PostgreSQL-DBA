@@ -1,3 +1,4 @@
+
 # PostgreSQL-DBA
 PostgreSQL DBA
 </br>
@@ -10,6 +11,9 @@ you would need to refer to the guide book "PostgreSQL DBA):
 
 Kindle Edition:
 https://www.amazon.com/PostgreSQL-DBA-v15-Administrators-Availablity-ebook/dp/B0C2WGKHQN/ref=sr_1_1?crid=2YLTOOFRR9DF7&keywords=PostgreSQL+DBA&qid=1682397797&s=books&sprefix=postgresql+db%2Cstripbooks-intl-ship%2C403&sr=1-1
+
+The Video more about the guide book:
+https://www.amazon.com/live/video/0a3530a003cc4e6d9d0166d2d4f9ee22
 
 
 Important Note 2: do not run any commands if you have no idea what the command is for, please refer to the guide book "PostgreSQL DBA"
