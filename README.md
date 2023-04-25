@@ -34,11 +34,14 @@ mkdir -p /appl/pgsql/15/
 cd /appl/pgsql/15
 sudo /usr/pgsql-15/bin/initdb --pgdata=/appl/pgsql/15/data --localeprovider=icu --icu-locale=en_US.UTF-8  
 
+
 To start PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile start 
 
+
 To stop PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile stop
+
 
 To restart PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile restart 
@@ -46,11 +49,14 @@ To restart PostgreSQL
 To reload the PostgreSQL configuration without restart 
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile reload
 
+
+
 4. To create, to list, to connect to a new database in PostgreSQL (Windows, or Mac, or Linux)
 
-(use PSQL)
 postgres=# CREATE DATABASE my_db; 
+
 postgres=# \l 
+
 postgres=# \c my_db    
 
 
@@ -58,22 +64,31 @@ postgres=# \c my_db
 Chapter 3:
 
 postgres=# CREATE USER my_user; 
+
 postgres=# ALTER ROLE my_user WITH ENCRYPTED PASSWORD 'my_pass'; 
+
 postgres=# CREATE DATABASE my_db; 
+
 postgres=# GRANT ALL ON DATABASE my_db TO my_user; 
+
 postgres=# ALTER DATABASE my_db OWNER TO my_user; 
+
 postgres=# \q
 
 
 sample pg_hba.conf entries that enable SSL
 
-hostssl  all   all   192.168.0.100/32   md5  
-hostssl  all   all   192.168.0.0/24     md5 
-hostssl  my_db all   192.168.0.0/24     md5 
-hostssl  all   userA  192.168.0.0/24    md5
-hostssl  my_db  userA  192.168.0.0/24  md5 
+hostssl  all    all    192.168.0.100/32   md5  
 
-to test PSQL with SSL
+hostssl  all    all    192.168.0.0/24     md5 
+
+hostssl  my_db  all    192.168.0.0/24     md5 
+
+hostssl  all    userA  192.168.0.0/24     md5
+
+hostssl  my_db  userA  192.168.0.0/24     md5 
+
+
 /usr/pgsql-15/bin/psql -h localhost -d my_db -U my_user 
 
 CREATE TABLE books  ( 
@@ -85,18 +100,10 @@ genre VARCHAR(50),
 qty INTEGER, 
 unit_price DECIMAL );
 
-To insert test record
-my_db=# INSERT INTO books  
+INSERT INTO books  
 (title, author, publication_year, genre)  
 VALUES ('To Kill a Mockingbird', 'Harper Lee', 1960, 'Fiction'); 
 
-To retrieve the record:
-my_db=# SELECT * FROM books; 
-
-
-Command to generate a keystore that supports AES256
-
-cd /appl/keystore 
 
 keytool -genkey -alias mykey -keyalg RSA -keysize 2048 -keystore mykeystore.jks -storetype JKS -storepass mykeystorepassword -keypass mykeypassword -validity 3650 -keysize 256 -dname "CN=mydomain.com, OU=MyOrg, O=MyOrg, L=MyCity, ST=MyState, C=MyCountry" -ext san=dns:mydomain.com 
 
