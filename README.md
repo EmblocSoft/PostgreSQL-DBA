@@ -20,6 +20,7 @@ https://www.amazon.com/live/video/0a3530a003cc4e6d9d0166d2d4f9ee22
 
 Important Note 2: do not run any commands if you have no idea what the command is for, please refer to the guide book "PostgreSQL DBA"
 
+---
 
 Chapter 1 and 2:
 
@@ -67,7 +68,7 @@ postgres=# \l
 
 postgres=# \c my_db    
 
-
+---
 
 Chapter 3:
 
@@ -137,7 +138,7 @@ id SERIAL PRIMARY KEY,
 name TEXT ) 
 TABLESPACE tbs_encrypt_zone; 
 
-
+---
 
 Chapter 4
 
@@ -351,7 +352,7 @@ FROM pg_catalog.pg_roles r
 WHERE r.rolname !~ '^pg_' 
 ORDER BY 1; 
 
-
+---
 
 Chapter 6
 
@@ -670,7 +671,7 @@ FROM documents
 WHERE search_vector @@ 
 to_tsquery('English', 'PostgreSQL & database'); 
 
-
+---
 
 Chapter 7
 
@@ -690,7 +691,7 @@ PUBLICATION pub_name;
 ALTER SUBSCRIPTION
 sub_name ENABLED;
 
-
+---
 
 Chapter 8
 
@@ -773,7 +774,7 @@ Sample recovery.conf file:
 restore_command = 'cp /mnt/wal_archive/%f "%p"' 
 recovery_target_time = '2023-04-03 12:00:00' 
 
-
+---
 
 Chapter 10
 
@@ -994,7 +995,7 @@ EXPLAIN SELECT *
 FROM books 
 WHERE author IN ('F. Scott Fitzgerald','J.D. Salinger'); 
 
-
+---
 
 Chapter 11
 
@@ -1229,7 +1230,7 @@ SCHEMA "/path/to/directory"
 FROM SERVER parquet_s3_srv 
 INTO public; 
 
-
+---
 
 Chapter 12
 
@@ -1435,7 +1436,7 @@ SELECT *
 FROM company 
 WHERE 'Retail' = ANY(industries); 
 
-
+---
 
 Chapter 13
 
@@ -1681,7 +1682,7 @@ initcond = '{}'
 SELECT avg_price(price) AS average_price 
 FROM products; 
 
-
+---
 
 Chapter 14
 
@@ -1727,7 +1728,7 @@ ON ROLE test01 IS NULL;
 SELECT 
 anon.stop_dynamic_masking(); 
 
-
+---
 
 Chapter 15 & 16
 
