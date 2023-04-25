@@ -35,18 +35,20 @@ cd /appl/pgsql/15
 sudo /usr/pgsql-15/bin/initdb --pgdata=/appl/pgsql/15/data --localeprovider=icu --icu-locale=en_US.UTF-8  
 
 
-To start PostgreSQL
+To start PostgreSQL:
+
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile start 
 
+To stop PostgreSQL:
 
-To stop PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile stop
 
+To restart PostgreSQL:
 
-To restart PostgreSQL
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile restart 
 
-To reload the PostgreSQL configuration without restart 
+To reload the PostgreSQL configuration without restart:
+ 
 /usr/pgsql-15/bin/pg_ctl -D /appl/pgsql/15/data -l /appl/logs/pgsql/pg_logfile reload
 
 
