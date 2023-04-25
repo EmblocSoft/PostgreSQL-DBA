@@ -294,10 +294,6 @@ ALTER ROLE username CONNECTION LIMIT 1;
 
 ALTER ROLE username CONNECTION LIMIT DEFAULT; 
 
-Sample pg_hba.conf entry to reject a connection
-#TYPE 	DATABASE 	USER 	  ADDRESS 	  METHOD 
-host 	  all 		  peter 	0.0.0.0/0 	reject 
-
 SELECT 
 pid, 
 usename, 
@@ -639,7 +635,6 @@ AS ON DELETE TO books DO INSTEAD NOTHING;
 
 CREATE TYPE gender 
 AS ENUM ('Male', 'Female', 'Other'); 
-# Create a table and use the new enum
 
 CREATE TABLE users (   
 id SERIAL PRIMARY KEY, 
@@ -767,7 +762,8 @@ FROM pg_stat_activity
 WHERE state = 'idle' 
 AND datname = 'your_database_name'; 
 
-# an example recovery.conf file: 
+Sample recovery.conf file: 
+
 restore_command = 'cp /mnt/wal_archive/%f "%p"' 
 recovery_target_time = '2023-04-03 12:00:00' 
 
