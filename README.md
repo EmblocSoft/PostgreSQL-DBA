@@ -91,7 +91,6 @@ hostssl  all    userA  192.168.0.0/24     md5
 hostssl  my_db  userA  192.168.0.0/24     md5 
 
 
-/usr/pgsql-15/bin/psql -h localhost -d my_db -U my_user 
 
 CREATE TABLE books  ( 
 book_id SERIAL PRIMARY KEY,  
@@ -127,7 +126,7 @@ LOCATION '/appl/pgsql/15/data/tbs_encrypt_zone';
 
 postgres=# \c my_db
 
-my_db=#CREATE TABLE my_enpted_table (   
+CREATE TABLE my_enpted_table (   
 id SERIAL PRIMARY KEY,   
 name TEXT ) 
 TABLESPACE tbs_encrypt_zone; 
@@ -142,6 +141,7 @@ pg_ctl checkpoint -D /appl/pgsql/15/data
 or
 
 /usr/pgsql-15/bin/psql 
+
 postgres=#  CHECKPOINT; 
 
 
