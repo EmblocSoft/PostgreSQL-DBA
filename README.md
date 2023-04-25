@@ -151,7 +151,7 @@ or
 
 postgres=#  CHECKPOINT; 
 
-
+---
 
 Chapter 5
 
