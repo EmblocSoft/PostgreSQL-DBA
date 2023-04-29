@@ -6,17 +6,17 @@
 
 </br>
 </br>
-The book's introduction video:</br>
+The "PostgreSQL DBA" book's introduction video:</br>
 https://www.amazon.com/live/video/0365e749066645548e17ee87fd53daaf
 
 </br>
 </br>
-The book's URL:</br>
+The "PostgreSQL DBA" book's URL:</br>
 https://www.amazon.com/PostgreSQL-DBA-v15-Administrators-Availablity/dp/B0C2SVRNJ3/ref=tmm_pap_swatch_0?_encoding=UTF8&qid=1682643597&sr=8-3
 
 </br>
 </br>
-Kindle Edition:</br>
+The "PostgreSQL DBA" book's Kindle Edition:</br>
 https://www.amazon.com/PostgreSQL-DBA-v15-Administrators-Availablity-ebook/dp/B0C2WGKHQN/ref=sr_1_1?crid=2YLTOOFRR9DF7&keywords=PostgreSQL+DBA&qid=1682397797&s=books&sprefix=postgresql+db%2Cstripbooks-intl-ship%2C403&sr=1-1
 
 </br>
