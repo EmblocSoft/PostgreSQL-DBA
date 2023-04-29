@@ -10,7 +10,6 @@ Important Note 1: The following commands are FOR INFORMATION ONLY
 you would need to refer to the guide book "PostgreSQL DBA):
 
 Kindle Edition:
-
 https://www.amazon.com/PostgreSQL-DBA-v15-Administrators-Availablity-ebook/dp/B0C2WGKHQN/ref=sr_1_1?crid=2YLTOOFRR9DF7&keywords=PostgreSQL+DBA&qid=1682397797&s=books&sprefix=postgresql+db%2Cstripbooks-intl-ship%2C403&sr=1-1
 
 More about the guide book, watch this video:
