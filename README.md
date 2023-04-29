@@ -3,7 +3,7 @@
 
 # The book, "PostgreSQL DBA", is published on Amazon, it covers PostgreSQL v11, 12, 13, 14, to the latest v15
 
-The book's introduction video:>/br>
+The book's introduction video:</br>
 https://www.amazon.com/live/video/0365e749066645548e17ee87fd53daaf
 
 The book's URL:
