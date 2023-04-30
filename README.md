@@ -32,7 +32,7 @@ Important Note 1: The following commands are FOR INFORMATION ONLY, you would nee
 
 ---
 
-Chapter 1 and 2:
+C1 and C2:
 
 1. WINDOWS: sample command to calculate the checksum:
 
@@ -80,7 +80,7 @@ postgres=# \c my_db
 
 ---
 
-Chapter 3:
+C3:
 
 postgres=# CREATE USER my_user; 
 
@@ -150,7 +150,7 @@ TABLESPACE tbs_encrypt_zone;
 
 ---
 
-Chapter 4
+C4
 
 Manually set a checkpoint
 pg_ctl checkpoint -D /appl/pgsql/15/data 
@@ -163,7 +163,7 @@ postgres=#  CHECKPOINT;
 
 ---
 
-Chapter 5
+C5
 
 EXPLAIN SELECT * FROM books WHERE genre = 'Fiction';
 
@@ -364,7 +364,7 @@ ORDER BY 1;
 
 ---
 
-Chapter 6
+C6
 
 CREATE SCHEMA marketing; 
 
@@ -683,7 +683,7 @@ to_tsquery('English', 'PostgreSQL & database');
 
 ---
 
-Chapter 7
+C7
 
 CREATE ROLE replication_user 
 REPLICATION 
@@ -703,7 +703,7 @@ sub_name ENABLED;
 
 ---
 
-Chapter 8
+C8
 
 SELECT 
 nspname || '.' || relname AS tablename,   
@@ -786,7 +786,7 @@ recovery_target_time = '2023-04-03 12:00:00'
 
 ---
 
-Chapter 10
+C10
 
 CREATE INDEX 
 CONCURRENTLY idx_books_author
@@ -1007,7 +1007,7 @@ WHERE author IN ('F. Scott Fitzgerald','J.D. Salinger');
 
 ---
 
-Chapter 11
+C11
 
 CREATE SERVER oracle_server 
 FOREIGN DATA WRAPPER oracle_fdw 
@@ -1242,7 +1242,7 @@ INTO public;
 
 ---
 
-Chapter 12
+C12
 
 CREATE TABLE my_image (     
 id SERIAL PRIMARY KEY,     
@@ -1448,7 +1448,7 @@ WHERE 'Retail' = ANY(industries);
 
 ---
 
-Chapter 13
+C13
 
 CREATE TABLE sales ( 
 sale_id SERIAL,   
@@ -1694,7 +1694,7 @@ FROM products;
 
 ---
 
-Chapter 14
+C14
 
 REINDEX INDEX 
 CONCURRENTLY idx_book_titles; 
@@ -1740,7 +1740,7 @@ anon.stop_dynamic_masking();
 
 ---
 
-Chapter 15 & 16
+C15 & 16
 
 ora2pg -t SHOW_SCHEMA -o schema.sql 
 
