@@ -2359,63 +2359,51 @@ P13.1 (Please refert to the book)
 ---
 P13.2 (Please refert to the book)
 
-#
-# node 1
-#
+node 1
+
 nano /etc/repmgr.conf 
 
-# Node information
 node_id=1
 node_name=node1
 conninfo='host=node1_host user=repmgr_user dbname=repmgr_db password=repmgr_password connect_timeout=2'
 data_directory='/appl/pgsql/16/data/'
 
-# Use SSH for remote connection execution
 use_replication_slots=yes
 ssh_options='-q -o BatchMode=yes -o ConnectTimeout=10'
 
-# Paths to executables
 pg_bindir='/usr/lib/postgresql/12/bin'
 
-# Replication configuration
 reconnect_attempts=3
 reconnect_interval=5
 failover=automatic
 promote_command='repmgr standby promote -f /etc/repmgr.conf --log-to-file'
 follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
 
-# Logging
 log_file='/var/log/repmgr/repmgr.log'
 log_level=INFO
 log_status_inter
 
 
-#
-# node 2
-#
+node 2
+
 nano /etc/repmgr.conf 
 
-# Node information
 node_id=1
 node_name=node2
 conninfo='host=node1_host user=repmgr_user dbname=repmgr_db password=repmgr_password connect_timeout=2'
 data_directory='/appl/pgsql/16/data/'
 
-# Use SSH for remote connection execution
 use_replication_slots=yes
 ssh_options='-q -o BatchMode=yes -o ConnectTimeout=10'
 
-# Paths to executables
 pg_bindir='/usr/lib/postgresql/12/bin'
 
-# Replication configuration
 reconnect_attempts=3
 reconnect_interval=5
 failover=automatic
 promote_command='repmgr standby promote -f /etc/repmgr.conf --log-to-file'
 follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
 
-# Logging
 log_file='/var/log/repmgr/repmgr.log'
 log_level=INFO
 log_status_interval=300
