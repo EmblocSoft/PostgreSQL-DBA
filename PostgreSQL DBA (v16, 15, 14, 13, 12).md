@@ -112,6 +112,7 @@ WHERE relname = 'customers';
 P1.7
 
  TYPE  DATABASE        USER            ADDRESS         METHOD
+ 
 local   sameuser        all                             md5
 
 local   all             /^.*helpdesk$                   md5
