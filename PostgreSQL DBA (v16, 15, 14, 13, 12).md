@@ -865,6 +865,645 @@ FROM pg_catalog.pg_statio_user_tables
 ORDER BY pg_total_relation_size(relid) DESC; 
 
 
+---
+P7.6 (Please refet to the book)
+
+
+---
+P7.7.1
+
+CREATE INDEX IF NOT EXISTS idx_total_amount ON orders(total_amount);
+
+SET enable_seqscan = off; 
+
+EXPLAIN ANALYZE 
+SELECT DISTINCT customer_id, total_amount
+FROM orders WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+SET enable_seqscan = on; 
+
+EXPLAIN ANALYZE 
+SELECT DISTINCT customer_id, total_amount
+FROM orders WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+
+---
+P7.7.2
+
+DROP INDEX idx_total_amount;
+
+CREATE INDEX IF NOT EXISTS idx_total_amount ON orders(total_amount);
+
+SET enable_bitmapscan = off; 
+
+EXPLAIN ANALYZE 
+SELECT customer_id
+FROM orders
+WHERE total_amount > (
+    SELECT AVG(total_amount)
+    FROM orders
+);
+
+SET enable_bitmapscan = on; 
+
+EXPLAIN ANALYZE 
+SELECT customer_id
+FROM orders
+WHERE total_amount > (
+    SELECT AVG(total_amount)
+    FROM orders
+);
+
+
+---
+P7.7.3
+
+SET enable_indexscan = off; 
+
+EXPLAIN ANALYZE 
+SELECT customer_id, total_amount
+FROM orders
+WHERE total_amount >= 100000 AND total_amount <= 1000000;
+
+SET enable_indexscan = on; 
+
+ 
+---
+P7.8
+
+BEGIN;
+
+SELECT * FROM orders WHERE total_amount >= 1000 FOR UPDATE;
+
+UPDATE orders SET total_amount = total_amount * 1.10 WHERE total_amount >= 1000;
+
+COMMIT;
+
+
+---
+P7.9.1
+
+CREATE OR REPLACE PROCEDURE my_dynamic_cursor(param_value NUMERIC) AS $$
+DECLARE
+    my_cursor CURSOR FOR
+        SELECT customer_id::text, order_date, total_amount::numeric
+        FROM orders
+        WHERE total_amount > param_value;
+    customer_id text;
+    order_date DATE;
+    total_amount NUMERIC;
+BEGIN
+    OPEN my_cursor;
+    -- Fetch and process rows here
+    LOOP
+        FETCH NEXT FROM my_cursor INTO customer_id, order_date, total_amount;
+        EXIT WHEN NOT FOUND;
+        -- Process the row here (you can print or perform any other operation)
+        RAISE NOTICE 'Customer ID: %, Order Date: %, Total Amount: %', customer_id, order_date, total_amount;
+    END LOOP;
+
+    CLOSE my_cursor;
+END;
+$$ LANGUAGE plpgsql;
+
+UPDATE orders
+SET total_amount = floor(random() * (100000 - 1000 + 1) + 1000)
+WHERE total_amount = 1210;
+
+CALL my_dynamic_cursor(1000);
+
+
+---
+P7.9.2
+
+PREPARE my_prepared_statement (numeric) AS
+SELECT customer_id::text, order_date, total_amount::numeric
+FROM orders
+WHERE total_amount > $1;
+
+EXECUTE my_prepared_statement(1000);
+
+EXPLAIN ANALYZE EXECUTE my_prepared_statement(1000);
+
+EXPLAIN ANALYZE 
+SELECT customer_id::text, order_date, total_amount::numeric
+FROM orders
+WHERE total_amount > 1000;
+
+DEALLOCATE my_prepared_statement;
+
+
+---
+P7.10.1
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_order_date ON orders(order_date);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_customers_customer_name ON customers(customer_name);
+
+
+
+---
+P7.10.2
+
+EXPLAIN ANALYZE 
+SELECT *
+FROM orders
+WHERE order_date >= '2023-01-01' AND total_amount > 1000;
+
+
+---
+P7.10.3
+
+EXPLAIN ANALYZE 
+WITH total_sales AS (
+     SELECT customer_id, SUM(total_amount) AS total
+     FROM orders
+     GROUP BY customer_id
+)
+SELECT customers.customer_id, customers.customer_name, total_sales.total 
+FROM customers 
+JOIN total_sales ON customers.customer_id = total_sales.customer_id;
+
+
+---
+P7.10.4
+
+EXPLAIN ANALYZE 
+SELECT * 
+FROM customers 
+WHERE EXISTS ( 
+      SELECT 1
+      FROM orders
+      WHERE customers.customer_id = orders.customer_id);
+
+
+
+---
+P7.10.5
+
+EXPLAIN ANALYZE SELECT * FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id; 
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+JOIN orders ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders 
+JOIN customers ON orders.customer_id = customers.customer_id;
+ 
+EXPLAIN ANALYZE SELECT * FROM orders 
+JOIN customers ON customers.customer_id = orders.customer_id ;
+
+EXPLAIN ANALYZE  SELECT * FROM customers 
+LEFT JOIN orders ON customers.customer_id = orders.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+LEFT JOIN orders ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+LEFT JOIN customers ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+LEFT JOIN customers ON customers.customer_id = orders.customer_id ;
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+RIGHT JOIN orders ON customers.customer_id = orders.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+RIGHT JOIN orders ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+RIGHT JOIN customers ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+RIGHT JOIN customers ON customers.customer_id = orders.customer_id ;
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+FULL JOIN orders ON customers.customer_id = orders.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+FULL JOIN orders ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+FULL JOIN customers ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+FULL JOIN customers ON customers.customer_id = orders.customer_id ;
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+FULL OUTER JOIN orders ON customers.customer_id = orders.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM customers 
+FULL OUTER JOIN orders ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+FULL OUTER JOIN customers ON orders.customer_id = customers.customer_id;
+
+EXPLAIN ANALYZE SELECT * FROM orders
+FULL OUTER JOIN customers ON customers.customer_id = orders.customer_id ;
+
+
+
+---
+P7.10.6
+
+EXPLAIN ANALYZE 
+WITH sales_data AS (
+    SELECT
+        EXTRACT(YEAR  FROM order_date) AS year,
+        EXTRACT(MONTH FROM order_date) AS month,
+        total_amount
+    FROM orders
+    WHERE order_date >= '2023-01-01' AND order_date < '2024-01-01'
+)
+SELECT year, month, SUM(total_amount) AS total_sales
+FROM sales_data
+GROUP BY CUBE (year, month);
+
+EXPLAIN ANALYZE 
+SELECT 
+    EXTRACT(YEAR FROM  order_date) AS year,
+    EXTRACT(MONTH FROM order_date) AS month,
+    SUM(total_amount) AS total_sales
+FROM orders  
+WHERE order_date >= '2023-01-01' AND order_date < '2024-01-01' 
+GROUP BY CUBE (EXTRACT(YEAR FROM order_date), EXTRACT(MONTH  FROM order_date))
+ORDER BY year, month;
+
+
+---
+P7.11
+
+CREATE TABLE daily_sales_total AS
+SELECT
+    order_date,
+    SUM(total_amount) AS total_sales
+FROM orders
+GROUP BY order_date;
+
+CREATE TABLE monthly_sales_total AS
+SELECT
+    DATE_TRUNC('month', order_date) AS month,
+    SUM(total_amount) AS total_sales
+FROM orders
+GROUP BY month;
+
+CREATE TABLE yearly_sales_total AS
+SELECT
+    DATE_TRUNC('year', order_date) AS year,
+    SUM(total_amount) AS total_sales
+FROM orders
+GROUP BY year;
+
+SELECT order_date, total_sales 
+FROM daily_sales_total
+ORDER BY order_date;GROUP BY year;
+
+SELECT month, total_sales
+FROM monthly_sales_total 
+ORDER BY month;
+
+SELECT year, total_sales
+FROM yearly_sales_total
+ORDER BY year;
+
+EXPLAIN ANALYZE 
+SELECT year, total_sales
+FROM yearly_sales_total
+ORDER BY year;
+
+EXPLAIN ANALYZE 
+SELECT
+    DATE_TRUNC('year', order_date) AS year,
+    SUM(total_amount) AS total_sales
+FROM orders
+GROUP BY year;
+
+
+---
+P8.1.1
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_customers_customer_name ON customers(customer_name);
+
+REINDEX INDEX CONCURRENTLY idx_customers_customer_name;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_date_amount ON orders(order_date, total_amount);
+
+
+---
+P8.1.2
+
+SELECT * FROM pg_stat_activity 
+WHERE query ILIKE '%CREATE INDEX%';
+
+SELECT pg_cancel_backend(8044);
+
+
+
+---
+P8.2.1
+
+CREATE TEMP SEQUENCE temp_sales_id_seq START 1;
+
+INSERT INTO sales (sale_date, amount)
+SELECT
+    '2020-01-01'::date + (random() * 365)::integer AS sale_date,
+    (random() * 1000)::numeric(10, 2) AS amount
+FROM generate_series(1, 100000) AS row_number;
+
+INSERT INTO sales (sale_date, amount)
+SELECT
+    '2021-01-01'::date + (random() * 365)::integer AS sale_date,
+    (random() * 1000)::numeric(10, 2) AS amount
+FROM generate_series(1, 100000) AS row_number;
+
+INSERT INTO sales (sale_date, amount)
+SELECT
+    '2022-01-01'::date + (random() * 365)::integer AS sale_date,
+    (random() * 1000)::numeric(10, 2) AS amount
+FROM generate_series(1, 100000) AS row_number;
+
+INSERT INTO sales (sale_date, amount)
+SELECT
+    '2023-01-01'::date + (random() * 365)::integer AS sale_date,
+    (random() * 1000)::numeric(10, 2) AS amount
+FROM generate_series(1, 100000) AS row_number;
+
+CREATE OR REPLACE FUNCTION current_year() 
+RETURNS integer AS 
+$$  
+    SELECT EXTRACT(YEAR FROM CURRENT_DATE); 
+$$ LANGUAGE SQL IMMUTABLE; 
+
+CREATE INDEX idx_sales_new_in_365d 
+ON sales(sale_date, sales_id, amount) 
+WHERE EXTRACT(YEAR FROM sale_date)>= current_year() - 1; 
+
+CREATE INDEX idx_sales_all 
+ON sales(sale_date, sales_id, amount) ; 
+
+
+---
+P8.2.2
+
+SELECT 
+ i.relname "Table Name",
+ indexrelname "Index Name",
+ pg_size_pretty(pg_total_relation_size(relid)) As "Total Size",
+ pg_size_pretty(pg_relation_size(relid)) as "Table Size",
+ pg_size_pretty(pg_relation_size(indexrelid)) "Index Size",
+ reltuples::bigint "Estimated table row count"
+FROM pg_stat_all_indexes i JOIN pg_class c ON i.relid=c.oid 
+WHERE i.relname='sales';
+
+
+---
+P8.3
+
+CREATE TABLE contacts (
+    contact_id serial PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    company VARCHAR(50),
+    department VARCHAR(50),
+    phone VARCHAR(50),
+    Email VARCHAR(50) 
+);
+
+CREATE INDEX idx_contact_name 
+ON contacts((first_name || ' ' || last_name));
+
+
+
+---
+P8.4
+CREATE TABLE contacts (
+    contact_id serial PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    company VARCHAR(50),
+    department VARCHAR(50),
+    phone VARCHAR(50),
+    Email VARCHAR(50) 
+);
+
+CREATE INDEX idx_contact_name 
+ON contacts((first_name || ' ' || last_name));
+
+
+---
+P8.5
+
+CREATE TABLE articles (   
+id SERIAL PRIMARY KEY,   
+title TEXT NOT NULL, 
+body TEXT NOT NULL ); 
+-- Insert 4 test records 
+INSERT INTO articles (title, body) 
+VALUES 
+  ('PostgreSQL Full Text Search', 'PostgreSQL has a powerful Full Text Search functionality.'), 
+  ('How to use FTS in PostgreSQL', 'In order to use FTS in PostgreSQL, you need to create a text search configuration and define a full text index.'), 
+  ('Why use FTS in PostgreSQL', 'FTS in PostgreSQL is great for searching large amounts of textual data quickly and efficiently.'), 
+  ('Limitations of FTS in PostgreSQL', 'FTS in PostgreSQL is not as feature-rich as some other search engines, but it is still very powerful.'); 
+
+INSERT INTO articles (title, body)
+VALUES
+    ('PostgreSQL Full Text Search', 'PostgreSQL has a powerful Full Text Search functionality.'),
+    ('How to use FTS in PostgreSQL', 'In order to use FTS in PostgreSQL, you need to create a text search configuration and define a full text index.'),
+    ('Why use FTS in PostgreSQL', 'FTS in PostgreSQL is great for searching large amounts of textual data quickly and efficiently.'),
+    ('Limitations of FTS in PostgreSQL', 'FTS in PostgreSQL is not as feature-rich as some other search engines, but it is still very powerful.');
+
+CREATE TEXT SEARCH CONFIGURATION english_fts (COPY = english); 
+
+ALTER TEXT SEARCH CONFIGURATION english_fts  
+ALTER MAPPING FOR asciiword WITH english_stem; 
+CREATE INDEX articles_fts_idx 
+ON articles 
+USING gin(to_tsvector('english_fts', title || ' ' || body)); 
+
+SELECT * FROM articles
+WHERE to_tsvector('english_fts', title || ' ' || body) @@ to_tsquery('english_fts', 'PostgreSQL');
+
+
+
+---
+P8.6
+
+CREATE INDEX CONCURRENTLY IF NOT idx_sales_all 
+ON sales(sale_date, sales_id, amount) ;
+
+
+
+---
+P8.7
+
+CREATE TABLE books  ( 
+book_id SERIAL PRIMARY KEY,  
+title VARCHAR(100) NOT NULL, 
+author VARCHAR(100) NOT NULL,
+publication_year INTEGER, 
+genre VARCHAR(50),
+qty INTEGER, 
+unit_price DECIMAL );
+
+CREATE INDEX CONCURRENTLY idx_books_genre_price 
+ON  books 
+USING BTREE (genre, unit_price);
+
+
+
+---
+P8.8
+
+CREATE TABLE my_long_text (     
+id SERIAL PRIMARY KEY,     
+text_column TEXT 
+); 
+
+INSERT INTO my_long_text (text_column) 
+VALUES ('GiST stands for Generalized Search Tree and it is an index structure in PostgreSQL that is suitable for handling complex data types and complex queries. It is an alternative index type to the B-tree index and can be used when the B-tree index is not suitable for the data type or the query. 
+B-tree index is not suitable for some data types such as text and array data types. These data types require more complex and specialized indexing methods, such as GIN and GiST indexes. B-tree index is designed for range queries, and its performance degrades when handling large amounts of data or complex queries. '); 
+
+INSERT INTO my_long_text (text_column) 
+VALUES ('B-tree index is not suitable for some data types such as TEXT or array of text. These data types require more complex and specialized indexing methods, such as Gist indexes since B-tree index is designed for range queries and B-tree performance degrades when handling large amounts of data or complex queries.'); 
+
+INSERT INTO my_long_text (text_column) 
+VALUES ('The GiST index can handle many different types of data such as full-text search, geometric data, and even custom data types that you define. It supports operations like equality, inequality, and distance-based searches.'); 
+
+INSERT INTO my_long_text (text_column) 
+VALUES ('A functional index in PostgreSQL, also called Expression index,  is an index built on an expression rather than on a simple column or columns. A functional index is useful when you want to index the result of a function or expression instead of just the value in a column.'); 
+
+CREATE EXTENSION pg_trgm;
+
+CREATE INDEX idx_long_text_gist 
+ON my_long_text 
+USING GIST (text_column gist_trgm_ops);
+
+EXPLAIN ANALYZE 
+SELECT * 
+FROM my_long_text 
+WHERE text_column @@ to_tsquery('suitable') 
+AND text_column % '%suitable%';
+
+
+
+---
+P8.9
+
+CREATE TABLE my_json (id SERIAL PRIMARY KEY, data JSON );
+ 
+INSERT INTO my_json (data) VALUES 
+    ('{"name": "John", "age": 30, "city": "New York"}'), 
+    ('{"name": "Jane", "age": 25, "city": "San Francisco"}'), 
+    ('{"name": "Bob", "age": 40, "city": "Chicago"}'), 
+    ('{"name": "Alice", "age": 35, "city": "Seattle"}'), 
+    ('{"name": "Mike", "age": 45, "city": "Boston"}'); 
+    
+CREATE INDEX idx_gin_json 
+ON my_json USING GIN ((data->>'name') gin_trgm_ops); 
+
+SELECT * FROM my_json 
+WHERE data->>'name' = 'Alice'; 
+
+EXPLAIN ANALYZE
+SELECT * FROM my_json
+WHERE data->>'name' = 'Alice';
+
+
+
+---
+P8.10
+
+CREATE INDEX idx_brin_books 
+ON books 
+USING BRIN (publication_year); 
+
+EXPLAIN SELECT * 
+FROM books 
+WHERE publication_year >= 1970;
+
+
+
+---
+P8.11
+
+CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE; 
+
+CREATE TABLE my_network (   
+id SERIAL PRIMARY KEY, 
+address cidr,   
+country_code varchar(2),   
+location_point point, 
+created_at timestamp default current_timestamp 
+); 
+
+INSERT INTO my_network (address, country_code, location_point) 
+VALUES  
+  ('192.168.0.0/24', 'US', point(40.7128, -74.0060)), 
+  ('192.168.1.0/24', 'GB', point(51.5074, -0.1278)), 
+  ('192.168.2.0/24', 'DE', point(52.5200, 13.4050)), 
+  ('192.168.3.0/24', 'FR', point(48.8566, 2.3522)), 
+  ('192.168.4.0/24', 'JP', point(35.6762, 139.6503)); 
+CREATE INDEX idx_spgist_my_network 
+ON my_network 
+USING spgist(location_point); 
+
+SELECT * 
+FROM my_network 
+WHERE earth_box(ll_to_earth(40.7128,-74.0060), 10000) @> ll_to_earth(location_point[0], location_point[1]); 
+
+
+EXPLAIN 
+SELECT * 
+FROM my_network 
+WHERE earth_box(ll_to_earth(40.7128,-74.0060), 10000) @> ll_to_earth(location_point[0], location_point[1]);
+
+
+
+---
+P8.12
+
+INSERT INTO  books (title, author, publication_year, genre, qty, unit_price) 
+VALUES  
+('The Great Gatsby', 'F. Scott Fitzgerald', 1925, 'Literary Fiction', 10, 9.99), 
+('To Kill a Mockingbird', 'Harper Lee', 1960, 'Literary Fiction', 15, 12.99), 
+('1984', 'George Orwell', 1949, 'Dystopian Fiction', 5, 7.99), 
+('Pride and Prejudice', 'Jane Austen', 1813, 'Romantic Fiction', 8, 6.99), 
+('The Catcher in the Rye', 'J.D. Salinger', 1951, 'Literary Fiction', 12, 10.99); 
+ 
+CREATE INDEX idx_hash_books 
+ON books  USING HASH (author); 
+
+SELECT * 
+FROM books 
+WHERE author IN ('F. Scott Fitzgerald','J.D. Salinger'); 
+
+EXPLAIN 
+SELECT * FROM books 
+WHERE author IN ('F. Scott Fitzgerald','J.D. Salinger'); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
