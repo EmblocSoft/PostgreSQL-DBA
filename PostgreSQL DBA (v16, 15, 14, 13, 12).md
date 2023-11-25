@@ -27,6 +27,7 @@ Important Note 1: The following commands are FOR INFORMATION ONLY
 
 ---
 P1.1
+
 SET max_parallel_workers = 4; 
 CREATE TABLE orders (order_id serial PRIMARY KEY, customer_id int, order_date date);
 CREATE TABLE customers (customer_id serial PRIMARY KEY, customer_name varchar(255),    city varchar(255));
@@ -44,6 +45,7 @@ RIGHT OUTER JOIN customers ON orders.customer_id=customers.customer_id;
 
 ---
 P1.2
+
 SELECT pg_create_logical_replication_slot('my_replication_slot', 'pgoutput');
 CREATE PUBLICATION my_publication FOR TABLE my_table;
 CREATE PUBLICATION my_publication FOR ALL TABLES;
@@ -53,20 +55,21 @@ SELECT * FROM pg_replication_slots
 
 ---
 P1.3
+
 CREATE PUBLICATION my_publication FOR TABLE my_table;
 CREATE SUBSCRIPTION my_subscription 
 CONNECTION 'dbname=mydb host=primary_server user=myuser password=mypassword' 
-PUBLICATION my_publication
-WITH (binary=true);
-
+PUBLICATION my_publication WITH (binary=true);
 SELECT * FROM pg_stat_subscription;
 
 ---
 P1.4
+
 SELECT * FROM pg_stat_io;
 
 ---
 P1.5
+
 SELECT json_object(
     'name' VALUE 'John Doe', 'age' VALUE 30, 'city' VALUE 'New York'
 ) AS person;
