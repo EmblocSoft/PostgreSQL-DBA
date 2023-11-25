@@ -336,3 +336,536 @@ CREATE DATABASE my_db;
 
 /usr/pgsql-16/bin/pg_ctl -D /appl/pgsql/16/data -l /appl/logs/pgsql/pg_logfile reload 
 
+
+
+---
+P4.1
+
+CREATE USER my_user; 
+
+ALTER ROLE my_user WITH ENCRYPTED PASSWORD 'my_pass'; 
+
+CREATE DATABASE my_db; 
+
+GRANT ALL ON DATABASE my_db TO my_user; 
+
+ALTER DATABASE my_db OWNER TO my_user; 
+
+
+
+---
+P4.2
+
+(Intended to be blank)
+
+
+---
+P4.3
+
+CREATE TABLE books( 
+book_id SERIAL PRIMARY KEY,  
+title VARCHAR(100) NOT NULL,
+author VARCHAR(100) NOT NULL,     
+publication_year INTEGER,   
+genre VARCHAR(50),     
+qty INTEGER, 
+unit_price DECIMAL);
+
+
+---
+P4.4
+(Intended to be blank)
+
+
+---
+P4.5
+
+/usr/pgsql-16/bin/psql -h localhost -d my_db -U my_user 
+
+
+---
+P4.6
+
+psql -h localhost -p 5432 -U my_user -d my_db -sslmode require -sslcert /appl/keystore/client_postgresql_cert.pem -sslkey /appl/keystore/client.key 
+
+
+---
+P4.7
+
+CREATE TABLESPACE tbs_encrypt_zone LOCATION '/appl/pgsql/16/data/tbs_encrypt_zone'; 
+
+
+
+---
+P5.1
+
+SELECT setting FROM pg_settings WHERE name = 'data_directory';
+
+
+---
+P5.2
+
+SELECT setting FROM pg_settings WHERE name = 'config_file';
+
+SELECT setting FROM pg_settings WHERE name = 'hba_file';
+
+SHOW log_directory;
+
+SHOW log_filename;
+
+
+
+---
+P5.3
+
+SHOW shared_buffers;
+
+SHOW max_connections;
+
+SHOW work_mem;
+
+SHOW maintenance_work_mem;
+
+
+---
+P5.4
+SHOW log_connections;
+
+
+---
+P5.5
+
+SHOW max_connections;
+
+
+---
+P5.6
+
+SHOW default_statistics_target;
+
+
+---
+P5.7
+
+SHOW effective_cache_size;
+
+
+---
+P5.8
+
+SHOW statement_timeout;
+
+
+
+---
+P5.9
+
+CREATE TABLE demo_table (
+    id serial PRIMARY KEY,
+    name VARCHAR(50),
+    children INT
+);
+
+BEGIN;
+INSERT INTO demo_table (name) VALUES ('John');
+
+INSERT INTO demo_table (name) VALUES ('Alice');
+
+SELECT * FROM demo_table;
+
+COMMIT;
+
+SELECT * FROM demo_table;
+
+
+---
+P5.10
+
+BEGIN;
+
+INSERT INTO demo_table (name, children) VALUES ('Alex', 2);
+
+INSERT INTO demo_table (name, children) VALUES ('Sam', 'NO CHILD');
+
+SELECT * FROM demo_table;
+
+INSERT INTO demo_table (name) VALUES ('Sam', 'NO CHILD');
+
+SELECT * FROM demo_table;
+
+ROLLBACK;
+
+SELECT * FROM demo_table;
+
+
+---
+P5.11 and P5.12 (Please refe to the book)
+
+
+---
+P5.13
+
+pg_basebackup -U your_username -D /path/to/backup_directory -Ft -Xs -P -v -h localhost
+
+
+---
+P6.1
+BEGIN; 
+
+CREATE TABLE employee(
+    id INT,
+    first_name VARCHAR (50),
+    last_name VARCHAR (50),
+    salary numeric(10, 2)
+);
+
+EXPLAIN ANALYZE INSERT INTO employee (first_name, last_name, salary)
+VALUES
+    ('John', 'Doe', 50000.00),
+    ('Jane', 'Smith', 60000.00),
+    ('Bob', 'Johnson', 55000.00);
+
+EXPLAIN ANALYZE SELECT * FROM employee;
+
+ROLLBACK;
+
+EXPLAIN ANALYZE SELECT * FROM employee;
+
+
+---
+P6.2.1 (Please refer to the book)
+
+
+---
+P6.2.2
+
+\c my_db
+
+CREATE EXTENSION pg_stat_statements;
+
+SELECT query, total_exec_time, calls
+FROM pg_stat_statements
+WHERE total_exec_time > 1000000
+ORDER BY total_exec_time DESC;
+
+
+---
+P6.3
+
+DROP TABLE customers;
+
+DROP TABLE orders;
+
+CREATE TABLE customers (
+    customer_id serial PRIMARY KEY,
+    customer_name varchar(255)
+);
+
+CREATE TABLE orders (
+    order_id serial PRIMARY KEY,
+    customer_id integer,
+    order_date date,
+    total_amount numeric);
+
+INSERT INTO customers (customer_name)
+SELECT md5(random()::text)
+FROM generate_series(1, 1000000);
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+SELECT
+    floor(random() * 100000) + 1,
+    current_date - floor(random() * 365)::integer,
+    CAST(random() * 1000 AS numeric(10, 2))
+FROM generate_series(1, 10000000);
+
+EXPLAIN ANALYZE 
+SELECT customer_name
+FROM customers
+WHERE customer_id IN (
+    SELECT customer_id
+    FROM orders
+    WHERE total_amount > (
+        SELECT AVG(total_amount)
+        FROM orders
+    )
+);
+
+EXPLAIN ANALYZE 
+SELECT customer_id
+FROM orders
+WHERE total_amount > (
+    SELECT AVG(total_amount)
+    FROM orders
+);
+
+EXPLAIN ANALYZE 
+SELECT c.customer_name
+FROM customers c
+JOIN (
+    SELECT customer_id
+    FROM orders
+    WHERE total_amount > (
+        SELECT AVG(total_amount)
+        FROM orders
+    )
+) o ON c.customer_id = o.customer_id;
+
+EXPLAIN ANALYZE 
+WITH avg_total_amount AS (
+    SELECT AVG(total_amount) AS avg_amount
+    FROM orders
+)
+SELECT c.customer_name
+FROM customers c
+JOIN (
+    SELECT customer_id
+    FROM orders
+    WHERE total_amount > (SELECT avg_amount FROM avg_total_amount)
+) o ON c.customer_id = o.customer_id;
+
+EXPLAIN ANALYZE 
+SELECT customer_name
+FROM customers
+WHERE customer_id IN (
+    SELECT customer_id
+    FROM orders
+    WHERE total_amount > (
+        SELECT AVG(total_amount)
+        FROM orders
+    )
+);
+
+EXPLAIN ANALYZE 
+SELECT customer_id
+FROM orders
+WHERE total_amount > (
+    SELECT AVG(total_amount)
+    FROM orders
+);
+
+EXPLAIN ANALYZE 
+SELECT c.customer_name
+FROM customers c
+JOIN (
+    SELECT customer_id
+    FROM orders
+    WHERE total_amount > (
+        SELECT AVG(total_amount)
+        FROM orders
+    )
+) o ON c.customer_id = o.customer_id;
+
+
+EXPLAIN ANALYZE
+WITH avg_total_amount AS (
+    SELECT AVG(total_amount) AS avg_amount
+    FROM orders
+)
+SELECT c.customer_name
+FROM customers c
+JOIN (
+    SELECT customer_id
+    FROM orders
+    WHERE total_amount > (SELECT avg_amount FROM avg_total_amount)
+) o ON c.customer_id = o.customer_id;
+
+
+---
+P6.4
+
+EXPLAIN ANALYZE
+SELECT COUNT(1)
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id;
+
+EXPLAIN ANALYZE
+SELECT COUNT(1)
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+WHERE customers.customer_id = 1;
+
+EXPLAIN ANALYZE
+SELECT COUNT(1)
+FROM (SELECT * FROM customers ORDER BY customer_id) AS c
+JOIN (SELECT * FROM orders ORDER BY customer_id) AS o
+ON c.customer_id = o.customer_id;
+
+EXPLAIN ANALYZE
+SELECT COUNT(1)
+FROM customers
+LEFT JOIN orders ON customers.customer_id = orders.customer_id;
+
+
+---
+P6.5
+
+SELECT relname AS table_name, indexrelname AS index_name, idx_scan, 
+idx_tup_read, ROUND(CAST(idx_tup_read AS numeric) / NULLIF(idx_scan, 0), 2) AS avg_tup_read_per_scan  
+FROM pg_stat_user_indexes 
+WHERE idx_scan > 0 
+ORDER BY avg_tup_read_per_scan ASC;
+
+
+---
+P6.6
+
+SELECT schemaname,  attname, n_distinct, most_common_vals, most_common_freqs 
+FROM pg_stats 
+WHERE 
+schemaname NOT LIKE  'pg_%' AND schemaname <> 'information_schema'  
+AND n_distinct <= 10 
+AND most_common_vals IS NOT NULL; 
+
+
+---
+P6.7 (Please refet to the book)
+
+
+---
+P6.8
+
+SELECT query,  state, backend_start,  now() - query_start AS duration 
+FROM pg_stat_activity 
+WHERE state = 'active'  AND now() - query_start > interval '2 minutes' 
+ORDER BY now() - query_start DESC;
+
+
+---
+P6.9
+
+SELECT mode, relation::regclass, pid, granted,  waitstart 
+FROM pg_locks 
+WHERE granted = false 
+ORDER BY granted, relation::regclass;
+
+
+---
+P7.1
+
+EXPLAIN ANALYZE 
+SELECT * FROM orders
+ORDER BY total_amount;
+
+EXPLAIN ANALYZE 
+SELECT *
+FROM orders
+WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+EXPLAIN ANALYZE 
+SELECT DISTINCT customer_id, total_amount
+FROM orders
+WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+DROP INDEX idx_total_amount_gt_100;
+
+EXPLAIN ANALYZE 
+SELECT DISTINCT customer_id, total_amount
+FROM orders
+WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+
+---
+P7.2
+
+CREATE INDEX CONCURRENTLY idx_customer_id ON customers(customer_id);
+
+CREATE INDEX CONCURRENTLY idx_order_id ON orders(order_id);
+
+CREATE INDEX CONCURRENTLY idx_total_amount_gt_100 ON orders(total_amount) WHERE total_amount >= 100;
+
+EXPLAIN ANALYZE 
+SELECT * FROM orders
+ORDER BY total_amount;
+
+EXPLAIN ANALYZE 
+SELECT *
+FROM orders
+WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+EXPLAIN ANALYZE 
+SELECT DISTINCT customer_id, total_amount
+FROM orders
+WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+DROP INDEX idx_total_amount_gt_100;
+
+EXPLAIN ANALYZE 
+SELECT DISTINCT customer_id, total_amount
+FROM orders
+WHERE order_date >= '2023-01-01' AND total_amount >=100
+ORDER BY total_amount;
+
+---
+P7.3
+
+DROP INDEX IF EXISTS idx_customer_name;
+
+EXPLAIN ANALYZE 
+SELECT customer_name
+FROM customers
+WHERE (customer_name >= '10000' AND customer_name <= '100000') OR
+      (customer_name >= '200000' AND customer_name <= '300000');
+
+CREATE INDEX CONCURRENTLY idx_customer_name ON customers(customer_name);
+
+EXPLAIN ANALYZE 
+SELECT customer_name
+FROM customers
+WHERE (customer_name >= '10000' AND customer_name <= '100000') OR
+      (customer_name >= '200000' AND customer_name <= '300000');
+
+
+
+---
+P7.4
+
+DROP INDEX IF EXISTS idx_customer_name;
+
+DROP INDEX IF EXISTS customers_customer_name_idx;
+
+EXPLAIN ANALYZE 
+SELECT *
+FROM customers
+ORDER BY customer_name;
+
+CREATE INDEX CONCURRENTLY idx_customer_name ON customers(customer_name);
+
+EXPLAIN ANALYZE 
+SELECT *
+FROM customers
+ORDER BY customer_name;
+
+
+---
+P7.5.1
+
+top
+
+df -h
+
+
+---
+P7.5.2
+
+SELECT datname, pg_size_pretty(pg_database_size(datname)) AS size 
+FROM pg_database  ORDER BY pg_database_size(datname) DESC; 
+
+
+
+---
+P7.5.3
+
+SELECT relname, pg_size_pretty(pg_total_relation_size(relid)) 
+FROM pg_catalog.pg_statio_user_tables 
+ORDER BY pg_total_relation_size(relid) DESC; 
+
+
+
+
+
+
