@@ -1487,17 +1487,223 @@ WHERE author IN ('F. Scott Fitzgerald','J.D. Salinger');
 
 
 
+---
+P9.1
+
+CREATE DATABASE test_db;
+
+CREATE ROLE myuser LOGIN ENCRYPTED PASSWORD 'mypassword' VALID UNTIL '2024-12-31';
+GRANT ALL PRIVILEGES ON DATABASE test_db TO myuser;
+
+ALTER ROLE myuser CONNECTION LIMIT 2;
 
 
 
 
+---
+P9.2
+
+CREATE SCHEMA marketing;
+
+GRANT ALL PRIVILEGES ON SCHEMA marketing TO myuser;
+
+
+---
+P9.3
+
+REVOKE ALL PRIVILEGES ON SCHEMA marketing FROM myuser;
+
+
+---
+P9.4
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA marketing
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO myuser;
+
+
+
+---
+P9.5
+
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER ON TABLE books TO myuser;
+
+
+
+---
+P9.6
+
+REVOKE TRUNCATE ON TABLE books FROM myuser;
+
+
+---
+P9.7
+
+GRANT SELECT (book_id, title, author) ON books TO myuser;
+
+
+---
+P9.8
+
+REVOKE SELECT (author) ON books FROM myuser;
 
 
 
 
+---
+P9.9
+
+CREATE ROLE books_admin_group WITH LOGIN;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON books TO books_admin_group;
+
+CREATE POLICY insert_update_delete_books_policy ON books
+FOR ALL TO books_admin_group
+USING (true) 
+WITH CHECK (true);
+
+CREATE ROLE literary_group WITH LOGIN;
+
+GRANT SELECT ON books TO literary_group;
+
+CREATE POLICY select_literary_fiction_policy ON books
+FOR SELECT TO literary_group
+USING (genre = 'Literary Fiction');
+
+ALTER TABLE books ENABLE ROW LEVEL SECURITY;
+
+CREATE ROLE dystopian_group WITH LOGIN;
+
+GRANT SELECT ON books TO dystopian_group;
+
+CREATE POLICY select_dystopian_fiction_policy ON books
+FOR SELECT TO dystopian_group 
+USING (true)
+USING (genre = 'Dystopian Fiction');
+
+CREATE ROLE romantic_group WITH LOGIN;
+
+GRANT SELECT ON books TO romantic_group;
+
+CREATE POLICY select_romantic_fiction_policy ON books
+FOR SELECT TO romantic_group 
+USING (genre = 'Romantic Fiction');
+
+CREATE USER alice WITH ENCRYPTED PASSWORD 'alice_password'; 
+
+GRANT books_admin_group TO alice;
+
+CREATE USER peter WITH ENCRYPTED PASSWORD 'peter_password';
+
+GRANT literary_group TO peter;
+
+CREATE USER john WITH ENCRYPTED PASSWORD 'john_password';
+
+GRANT dystopian_group TO john;
+
+CREATE USER susan WITH ENCRYPTED PASSWORD 'susan_password';
+
+GRANT romantic_group TO susan;
+
+SET ROLE alice;
+
+INSERT INTO books (book_id, title, author, publication_year, genre, qty, unit_price) 
+VALUES (6, 'New Book', 'New Author', 2023, 'New Genre', 100, 9.99);
+
+UPDATE books set author = 'Alice' WHERE book_id =6;
+
+SELECT * FROM books;
+
+RESET ROLE;
+
+
+SET ROLE peter;
+
+SELECT * FROM books;
+
+RESET ROLE;
+
+SET ROLE susan;
+
+SELECT * FROM books;
+
+RESET ROLE;
+
+
+---
+P9.10
+
+CREATE USER alex 
+WITH PASSWORD 'alex_password' 
+CREATEDB 
+INHERIT VALID UNTIL '2024-12-31';
 
 
 
+---
+P9.11
+
+CREATE USER candice 
+WITH ENCRYPTED   PASSWORD 'candice_password' 
+CREATEDB 
+INHERIT VALID UNTIL '2024-12-31';
+
+
+---
+P9.12
+ALTER USER alex 
+WITH ENCRYPTED PASSWORD 'alex_new_password'; 
+
+
+---
+P9.13
+
+DROP USER alex;
+
+
+
+---
+P9.14
+
+CREATE GROUP marketing;
+
+ALTER GROUP marketing  ADD USER peter; 
+
+ALTER GROUP marketing 
+DROP USER peter; 
+
+
+
+---
+P9.15
+
+SELECT usename, ssl 
+FROM pg_stat_ssl JOIN pg_user 
+ON pg_stat_ssl.pid = pg_backend_pid() 
+WHERE usename = 'postgres'; 
+
+
+
+
+---
+P9.16
+
+ALTER ROLE peter CONNECTION LIMIT 1; 
+
+ALTER ROLE peter CONNECTION LIMIT DEFAULT; 
+
+
+
+---
+P9.17 (Please refer to the book)
+
+
+
+---
+P9.18
+
+SELECT  pid,  usename,  application_name, client_addr, backend_start 
+FROM pg_stat_activity 
+WHERE usename = 'peter';
 
 
 
