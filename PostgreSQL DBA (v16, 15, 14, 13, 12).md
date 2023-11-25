@@ -18,11 +18,6 @@ https://www.amazon.com/PostgreSQL-DBA-v16-Administrators-Availablity-ebook/dp/B0
 </br>
 
 
-# PostgreSQL-DBA 16 (2024 Edition)
-PostgreSQL DBA 16 (2024 Edition)
-</br>
-
-
 Important Note 1: The following commands are FOR INFORMATION ONLY
 
 ---
