@@ -222,5 +222,117 @@ VACUUM (BUFFER_USAGE_LIMIT '128MB') orders;
 ANALYSE (BUFFER_USAGE_LIMIT '128MB') orders;
 
 
+---
+P1.13
 
+SELECT * FROM pg_stat_all_tables;
+
+
+---
+P1.14
+
+ps axu | grep postgres
+
+
+---
+P1.15
+
+\d pg_prepared_statements
+
+
+---
+P1.16
+SELECT * FROM pg_stat_get_backend_idset();
+
+SELECT pg_stat_get_backend_pid(backendid) AS pid,
+       pg_stat_get_backend_activity(backendid) AS query
+FROM pg_stat_get_backend_idset() AS backendid;
+
+
+---
+P1.17
+
+SELECT pid, wait_event_type, wait_event FROM pg_stat_activity WHERE wait_event is NOT NULL;
+
+
+---
+P.18
+
+SELECT * FROM pg_statio_user_sequences;
+
+
+---
+P1.19
+SELECT * FROM pg_stat_wal;
+
+
+---
+P1.20
+
+SELECT * FROM pg_stat_bgwriter;
+
+
+---
+P1.21
+
+SELECT * FROM pg_statio_user_indexes;
+
+
+---
+P1.22
+
+SELECT * FROM pg_statio_user_tables;
+
+
+---
+P1.23
+
+SELECT * FROM pg_stat_database_conflicts;
+
+
+---
+P1.24
+
+SELECT * FROM pg_stat_xact_all_tables
+
+
+---
+P2.1  and P3.1
+
+CREATE DATABASE my_db; 
+
+---
+P4
+sudo yum install libicu 
+
+sudo yum install lz4 
+
+sudo yum install libxslt 
+
+sudo locale-gen en_US.UTF-8 
+
+cd ~/Downloads
+
+sudo rpm -ivh postgresql16-libs-16.0-1PGDG.rhel9.x86_64.rpm
+
+sudo rpm -ivh postgresql16-16.0-1PGDG.rhel9.x86_64.rpm
+
+sudo rpm -ivh postgresql16-server-16.0-1PGDG.rhel9.x86_64.rpm
+
+sudo rpm -ivh postgresql16-contrib-16.0-1PGDG.rhel9.x86_64.rpm
+
+sudo /usr/pgsql-16/bin/initdb --pgdata=/appl/pgsql/16/data --localeprovider=icu --icu-locale=en_US.UTF-8  
+
+
+/usr/pgsql-16/bin/pg_ctl -D /appl/pgsql/16/data -l /appl/logs/pgsql/pg_logfile start 
+ 
+/usr/pgsql-16/bin/pg_ctl -D /appl/pgsql/16/data -l /appl/logs/pgsql/pg_logfile status 
+ 
+/usr/pgsql-16/bin/pg_ctl -D /appl/pgsql/16/data -l /appl/logs/pgsql/pg_logfile stop 
+
+/usr/pgsql-16/bin/pg_ctl -D /appl/pgsql/16/data -l /appl/logs/pgsql/pg_logfile restart
+
+CREATE DATABASE my_db; 
+
+/usr/pgsql-16/bin/pg_ctl -D /appl/pgsql/16/data -l /appl/logs/pgsql/pg_logfile reload 
 
