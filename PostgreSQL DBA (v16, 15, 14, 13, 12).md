@@ -2165,27 +2165,25 @@ data BYTEA
 
 
 
-# # #
 import psycopg2 from psycopg2 
 from psycopg2 import sql
-# Open connection to PostgreSQL database 
+
 conn = psycopg2.connect(     
    host="localhost",     
    database="my_db",     
    user="my_user",     
    password="my_password" ) 
-# Open file and read binary data 
+
 with open("/appl/image.png", "rb") as f:     
    image_data = f.read() 
-# Insert binary data into database 
+
 with conn.cursor() as cur:     
    query = sql.SQL("INSERT INTO my_image (name, data) VALUES (%s, %s)")   
    cur.execute(query, ("/appl/image.png", psycopg2.Binary(image_data)))     
    conn.commit() 
-# Close connection 
+
 conn.close()
 
-# # # 
 
 
 
