@@ -18,7 +18,7 @@ https://www.amazon.com/PostgreSQL-DBA-v16-Administrators-Availablity-ebook/dp/B0
 </br>
 
 
-# PostgreSQL-DBA 16 (2w024 Edition)
+# PostgreSQL-DBA 16 (2024 Edition)
 PostgreSQL DBA 16 (2024 Edition)
 </br>
 
