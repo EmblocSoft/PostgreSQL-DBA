@@ -2162,7 +2162,7 @@ id SERIAL PRIMARY KEY,
 name VARCHAR(100),     
 data BYTEA 
 ); 
-
+ 
 
 
 import psycopg2 from psycopg2 
