@@ -438,27 +438,42 @@ COMMIT;
 7.10
 
 CREATE OR REPLACE PROCEDURE my_dynamic_cursor(param_value NUMERIC) AS $$
+
 DECLARE
+
     my_cursor CURSOR FOR
+    
         SELECT customer_id::text, order_date, total_amount::numeric
+        
         FROM orders
+        
         WHERE total_amount > param_value;
+    
     customer_id text;
+    
     order_date DATE;
+    
     total_amount NUMERIC;
+
 BEGIN
+
     OPEN my_cursor;
-    -- Fetch and process rows here
+    
     LOOP
+    
         FETCH NEXT FROM my_cursor INTO customer_id, 
+        
                         order_date, total_amount;
         EXIT WHEN NOT FOUND;
-        -- Process the row here (you can print or perform any other operation)
+
         RAISE NOTICE 'Customer ID: %, Order Date: %, Total Amount: %', customer_id, order_date, total_amount;
+
     END LOOP;
 
     CLOSE my_cursor;
+
 END;
+
 $$ LANGUAGE plpgsql;
 
 UPDATE orders
@@ -471,8 +486,11 @@ CALL my_dynamic_cursor(1000);
 7.10.2
 
 PREPARE my_prepared_statement (numeric) AS
+
 SELECT customer_id::text, order_date, total_amount::numeric
+
 FROM orders
+
 WHERE total_amount > $1;
 
 EXECUTE my_prepared_statement(1000);
@@ -1068,10 +1086,15 @@ CREATE USER susan WITH ENCRYPTED PASSWORD 'susan_password';
 GRANT romantic_group TO susan;
 
 SET ROLE alice;
+
 INSERT INTO books (book_id, title, author, publication_year, genre, qty, unit_price) 
+
 VALUES (6, 'New Book', 'New Author', 2023, 'New Genre', 100, 9.99);
+
 UPDATE books set author = 'Alice' WHERE book_id =6;
+
 SELECT * FROM books;
+
 RESET ROLE;
 
 SET ROLE peter;
@@ -1336,19 +1359,33 @@ REFRESH MATERIALIZED VIEW mv_clients;
 11.8
 
 CREATE OR REPLACE FUNCTION 
+
 calculate_order_total(this_book_id INTEGER) 
+
 RETURNS NUMERIC 
+
 AS $$ 
+
 DECLARE 
+
     total NUMERIC := 0; 
+    
     item RECORD; 
+
 BEGIN 
+
     FOR item IN SELECT qty, unit_price FROM books WHERE book_id = $1 
+    
     LOOP 
+    
         total := total + (item.qty * item.unit_price); 
+    
     END LOOP; 
+    
     RETURN total; 
+
 END; 
+
 $$ LANGUAGE plpgsql;
 
 INSERT INTO books 
@@ -1361,28 +1398,48 @@ SELECT  calculate_order_total(7);
 11.9
 
 CREATE OR REPLACE FUNCTION insert_book() RETURNS
+
 TRIGGER AS $$ 
+
 BEGIN 
+
     IF NEW.qty <= 0 THEN 
+    
         RAISE EXCEPTION 'Quantity must be greater than 0'; 
+    
     END IF; 
+    
     RETURN NEW; 
+
 END; 
+
 $$ LANGUAGE plpgsql; 
 
 CREATE TRIGGER insert_book_trigger 
+
 BEFORE INSERT ON books 
+
 FOR EACH ROW 
+
 EXECUTE FUNCTION insert_book();
 
+
 CREATE OR REPLACE FUNCTION update_book() RETURNS 
+
 TRIGGER AS $$ 
+
 BEGIN 
+
     IF NEW.qty <= 0 THEN 
+
         RAISE EXCEPTION 'Quantity must be greater than 0';
+
     END IF; 
+
     RETURN NEW; 
+
 END; 
+
 $$ LANGUAGE plpgsql; 
 
 CREATE TRIGGER update_book_trigger 
@@ -1391,19 +1448,32 @@ FOR EACH ROW
 EXECUTE FUNCTION update_book();
 
 CREATE OR REPLACE FUNCTION delete_book() 
+
 RETURNS 
+
 TRIGGER AS $$ 
+
 BEGIN 
+
     IF OLD.qty <= 0 THEN 
+
         RAISE EXCEPTION 'Quantity must be greater than 0'; 
+
     END IF; 
+
     RETURN OLD; 
+
 END; 
+
 $$ LANGUAGE plpgsql;
 
+
 CREATE TRIGGER delete_book_trigger 
+
 BEFORE DELETE ON books 
+
 FOR EACH ROW 
+
 EXECUTE FUNCTION delete_book(); 
 
 INSERT INTO books (book_id, title, author, publication_year, genre, qty, unit_price) 
@@ -1475,8 +1545,11 @@ email VARCHAR(100) NOT NULL);
 11.14
 
 CREATE FUNCTION reverse_concat(text, text) RETURNS text 
+
 AS $$ 
+
     SELECT $2 || $1; 
+
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 CREATE OPERATOR ||| ( 
@@ -1808,29 +1881,48 @@ wal_level = replica
 nano pg_hba.conf
 hostssl  all  all   192.168.0.0/24   md5 
 
+
 nano /etc/repmgr.conf 
+
 node_id=1
+
 node_name=node1
+
 conninfo='host=node1_host user=repmgr_user dbname=repmgr_db password=repmgr_password connect_timeout=2'
+
 data_directory='/appl/pgsql/17/data/'
+
 use_replication_slots=yes
+
 ssh_options='-q -o BatchMode=yes -o ConnectTimeout=10'
+
 reconnect_attempts=3
+
 reconnect_interval=5
+
 failover=automatic
+
 promote_command='repmgr standby promote -f /etc/repmgr.conf --log-to-file'
+
 follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
+
 log_file='/var/log/repmgr/repmgr.log'
+
 log_level=INFO
+
 log_status_interval=300
 
+
 nano postgresql.conf
+
 wal_level = replica
 
 touch /appl/pgsql/17/data/standby.signal
 
 nano pg_hba.conf
+
 hostssl  all  all   192.168.0.0/24   md5 
+
 
 nano /etc/repmgr.conf 
 
@@ -1859,6 +1951,7 @@ follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstre
 log_file='/var/log/repmgr/repmgr.log'
 
 log_level=INFO
+
 log_status_interval=300
 
 
@@ -1879,7 +1972,9 @@ max_wal_senders = 3
 CREATE PUBLICATION my_publication FOR TABLE books;
 
 CREATE SUBSCRIPTION my_subscription 
+
 CONNECTION 'host=publisher_host port=5432 user=replication_user password=replication_password dbname=postgres' 
+
 PUBLICATION my_publication;
 
 ALTER SUBSCRIPTION my_subscription ENABLED;
@@ -2143,26 +2238,47 @@ product_id INTEGER REFERENCES products(product_id),
 quantity INTEGER, 
 price DECIMAL(10, 2));
 
+
 WITH RECURSIVE cte_products AS ( 
+
     SELECT product_id, name, price 
+
     FROM products 
+
     WHERE product_id NOT IN (
+
         SELECT DISTINCT product_id 
+
         FROM invoice 
-    ) -- Anchor member: top-level products without orders 
+
+    ) 
+
     UNION ALL 
+
     SELECT products.product_id, products.name, products.price 
+
     FROM products 
+
     INNER JOIN cte_products ON cte_products.product_id::TEXT = 
+
 ANY(products.tags) -- Cast to text 
+
     WHERE products.tags != '{}' -- Ignore empty tags array 
+
 ) 
+
 SELECT cte_products.product_id, cte_products.name,
+
 SUM(orders.sales_amount) 
+
 AS sales_amount 
+
 FROM cte_products 
-JOIN orders ON orders.name = cte_products.name |
+
+JOIN orders ON orders.name = cte_products.name 
+
 GROUP BY cte_products.product_id, cte_products.name 
+
 ORDER BY cte_products.product_id;
 
 
