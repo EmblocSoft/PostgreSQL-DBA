@@ -22,18 +22,15 @@ Important Note 1: The following commands are FOR INFORMATION ONLY
 
 ---
 5.10.1
--- Create a sample table
+
 CREATE TABLE demo_table (
     id serial PRIMARY KEY, name VARCHAR(50), children INT);
 
--- Start a transaction explicitly
 BEGIN;
 
--- Insert data into the table
 INSERT INTO demo_table (name) VALUES ('John');
 INSERT INTO demo_table (name) VALUES ('Alice');
 
--- Check if data exists 
 SELECT * FROM demo_table;
 
 ---
@@ -41,30 +38,27 @@ SELECT * FROM demo_table;
 -- Go back to Session 1 of PSQL:
 
 BEGIN;
--- Insert a row with GOOD data into the table
+
 INSERT INTO demo_table (name, children) VALUES ('Alex', 2);
--- Insert a row with BAD data into the table
+
 INSERT INTO demo_table (name, children) VALUES ('Sam', 'NO CHILD');
--- Check if data exists 
+
 SELECT * FROM demo_table;
 
 ROLLBACK;
--- Check if data exists 
 SELECT * FROM demo_table;
 
 
 ---
 6.1
-BEGIN; -- Start a transaction
+BEGIN; 
 
--- Create a new table
 CREATE TABLE employee(
     id INT,
     first_name VARCHAR (50),
     last_name VARCHAR (50),
     salary numeric(10, 2));
 
--- Insert data into the table
 EXPLAIN ANALYZE INSERT INTO 
 employee (first_name, last_name, salary)
 VALUES
@@ -72,56 +66,47 @@ VALUES
     ('Jane', 'Smith', 60000.00),
     ('Bob', 'Johnson', 55000.00);
 
--- Query data from the table
 EXPLAIN ANALYZE SELECT * FROM employee;
 
--- Rollback the transaction to cancel changes
 ROLLBACK;
 
 ---
 6.2
+
 nano postgresql.conf    # You can use another text editor
-###
 log_statement = 'all'
 log_duration = on
 shared_preload_libraries = 'pg_stat_statements'
 log_min_duration_statement = 1000    # 1000 milliseconds
-###
 
--- Enable pg_stat_statement EXTENSION to your database
 CREATE EXTENSION pg_stat_statements;
 
--- Run this SQL to find slow queries
 SELECT query, total_exec_time, calls
 FROM pg_stat_statements
-WHERE total_exec_time > 1000000   -- 1 second in microseconds
+WHERE total_exec_time > 1000000   
 ORDER BY total_exec_time DESC;
 
 ---
 6.3
--- Drop old sample tables
+
 DROP TABLE customers;
+
 DROP TABLE orders;
 
--- Create table: customer
 CREATE TABLE customers 
     customer_id serial PRIMARY KEY
     customer_name varchar(255);
 
--- Create table: orders
 CREATE TABLE orders (
     order_id serial PRIMARY KEY,
     customer_id integer,
     order_date date,
     total_amount numeric);
 
--- Insert sample data to customers table
 INSERT INTO customers (customer_name)
 
-SELECT md5(random()::text)
-FROM generate_series(1, 1000000);
+SELECT md5(random()::text) FROM generate_series(1, 1000000);
 
--- Generate and insert 10,000,000 sample rows to order
 INSERT INTO orders (customer_id, order_date, total_amount)
 SELECT
     floor(random() * 100000) + 1,
@@ -131,6 +116,7 @@ FROM generate_series(1, 10000000);
 
 ---
 Q1
+
 EXPLAIN ANALYZE 
 SELECT customer_name
 FROM customers
@@ -140,11 +126,11 @@ WHERE customer_id IN (
     WHERE total_amount > (
         SELECT AVG(total_amount)
         FROM orders
-    )
-);
+    ));
 
 ---
 Q2
+
 EXPLAIN ANALYZE 
 SELECT customer_id
 FROM orders
@@ -154,6 +140,7 @@ WHERE total_amount > (
 
 ---
 Q3
+
 EXPLAIN ANALYZE 
 SELECT c.customer_name
 FROM customers c
@@ -168,6 +155,7 @@ JOIN (
 
 ---
 Q4
+
 EXPLAIN ANALYZE 
 WITH avg_total_amount AS (
     SELECT AVG(total_amount) AS avg_amount
@@ -181,31 +169,27 @@ JOIN (
     WHERE total_amount > (SELECT avg_amount FROM avg_total_amount)
 ) o ON c.customer_id = o.customer_id;
 
---
--- Create indexes 
 CREATE INDEX idx_total_amount ON orders(total_amount);
 CREATE INDEX idx_customer_id ON orders(customer_id);
 
 ---
 6.4
+
 EXPLAIN ANALYZE
 SELECT COUNT(1)FROM customers
 JOIN orders ON customers.customer_id = orders.customer_id;
 
----
 EXPLAIN ANALYZE
 SELECT COUNT(1)FROM customers
 JOIN orders ON customers.customer_id = orders.customer_id
 WHERE customers.customer_id = 1;
 
----
 EXPLAIN ANALYZE
 SELECT COUNT(1)
 FROM (SELECT * FROM customers ORDER BY customer_id) AS c
 JOIN (SELECT * FROM orders ORDER BY customer_id) AS o
 ON c.customer_id = o.customer_id;
 
----
 EXPLAIN ANALYZE
 SELECT COUNT(1)
 FROM customers
@@ -213,7 +197,8 @@ LEFT JOIN orders ON customers.customer_id = orders.customer_id;
 
 ---
 6.5
-ELECT relname AS table_name, indexrelname AS index_name, idx_scan, 
+
+SELECT relname AS table_name, indexrelname AS index_name, idx_scan, 
 idx_tup_read, ROUND(CAST(idx_tup_read AS numeric) / NULLIF(idx_scan, 0), 2) AS avg_tup_read_per_scan  
 FROM pg_stat_user_indexes 
 WHERE idx_scan > 0 
@@ -221,6 +206,7 @@ ORDER BY avg_tup_read_per_scan ASC;
 
 ---
 6.6
+
 SELECT schemaname,  attname, n_distinct, most_common_vals, most_common_freqs 
 FROM pg_stats 
 WHERE 
@@ -230,32 +216,37 @@ AND most_common_vals IS NOT NULL;
 
 ---
 6.7
+
 SELECT * FROM pg_stat_activity 
 WHERE state = 'active' AND 
 now() - pg_stat_activity.query_start > interval '60 seconds';
 
 ---
 6.8
-ELECT query,  state, backend_start,  now() - query_start AS duration 
+
+SELECT query,  state, backend_start,  now() - query_start AS duration 
 FROM pg_stat_activity 
 WHERE state = 'active'  AND now() - query_start > interval '2 minutes' 
 ORDER BY now() - query_start DESC;
 
 ---
 6.9
-ELECT mode, relation::regclass, pid, granted,  waitstart 
+
+SELECT mode, relation::regclass, pid, granted,  waitstart 
 FROM pg_locks 
 WHERE granted = false 
 ORDER BY granted, relation::regclass;
 
 ---
 7.1
--- R1 
+---R1 
+
 EXPLAIN ANALYZE 
 SELECT * FROM orders
 ORDER BY total_amount;
 
 ---R2
+
 EXPLAIN ANALYZE 
 SELECT *
 FROM orders
@@ -263,6 +254,7 @@ WHERE order_date >= '2023-01-01' AND total_amount >=100
 ORDER BY total_amount;
 
 ---R3
+
 EXPLAIN ANALYZE 
 SELECT DISTINCT customer_id, total_amount
 FROM orders
@@ -271,21 +263,21 @@ ORDER BY total_amount;
 
 ---
 7.2
--- Create an index on “customer_id” in “customers” table
+
 CREATE INDEX CONCURRENTLY idx_customer_id ON customers(customer_id);
 
--- Create an index on “order_id” in “orders” table
 CREATE INDEX CONCURRENTLY idx_order_id ON orders(order_id);
 
--- Create a partial index for orders with a total_amount >= 100
 CREATE INDEX CONCURRENTLY idx_total_amount_gt_100 ON orders(total_amount) WHERE total_amount >= 100;
 
 ---R4
+
 EXPLAIN ANALYZE 
 SELECT * FROM orders
 ORDER BY total_amount;
 
 ---R5
+
 EXPLAIN ANALYZE 
 SELECT *
 FROM orders
@@ -293,16 +285,17 @@ WHERE order_date >= '2023-01-01' AND total_amount >=100
 ORDER BY total_amount;
 
 ---R6
+
 EXPLAIN ANALYZE 
 SELECT DISTINCT customer_id, total_amount
 FROM orders
 WHERE order_date >= '2023-01-01' AND total_amount >=100
 ORDER BY total_amount;
 
----
 DROP INDEX idx_total_amount_gt_100;
 
 ---R7
+
 EXPLAIN ANALYZE 
 SELECT DISTINCT customer_id, total_amount
 FROM orders
