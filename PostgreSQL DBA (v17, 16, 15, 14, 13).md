@@ -956,7 +956,6 @@ ALTER ROLE myuser CONNECTION LIMIT 2;
 
 ---
 9.2
-\c test_db
 CREATE SCHEMA marketing;
 GRANT ALL PRIVILEGES ON SCHEMA marketing TO myuser;
 
@@ -971,22 +970,18 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO myuser;
 
 ---
 9.5
-\c postgres
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER ON TABLE books TO myuser;
 
 ---
 9.6
-\c postgres
 REVOKE TRUNCATE ON TABLE books FROM myuser;
 
 ---
 9.7
-\c postgres
 GRANT SELECT (book_id, title, author) ON books TO myuser;
 
 ---
 9.8
-\c postgres
 REVOKE SELECT (author) ON books FROM myuser;
 
 ---
