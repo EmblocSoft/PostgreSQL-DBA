@@ -73,11 +73,16 @@ ROLLBACK;
 ---
 6.2
 
-nano postgresql.conf    # You can use another text editor
+nano postgresql.conf  
+
 log_statement = 'all'
+
 log_duration = on
+
 shared_preload_libraries = 'pg_stat_statements'
+
 log_min_duration_statement = 1000    # 1000 milliseconds
+
 
 CREATE EXTENSION pg_stat_statements;
 
@@ -302,33 +307,31 @@ FROM orders
 WHERE order_date >= '2023-01-01' AND total_amount >=100
 ORDER BY total_amount;
 
-- Rebuild an index
 REINDEX INDEX CONCURRENTLY idx_customer_id;
 
--- Change the fill factor of an index
 ALTER INDEX idx_customer_id  SET (fillfactor = 80);
 
--- Disable an index
 DROP INDEX idx_customer_id ;
 
 ---
 7.3
+
 EXPLAIN ANALYZE SELECT customer_name FROM customers
 WHERE 
 (customer_name >= '10000' AND customer_name <= '100000') OR (customer_name >= '200000' AND customer_name <= '300000');
 
----
 CREATE INDEX CONCURRENTLY idx_customer_name 
 ON customers(customer_name);
 
----
 EXPLAIN ANALYZE 
 SELECT customer_name FROM customers WHERE 
 (customer_name >= '10000' AND customer_name <= '100000') OR      (customer_name >= '200000' AND customer_name <= '300000');
 
 ---
 7.4
+
 DROP INDEX IF EXISTS idx_customer_name;
+
 DROP INDEX IF EXISTS customers_customer_name_idx;
 
 EXPLAIN ANALYZE 
@@ -339,7 +342,6 @@ ORDER BY customer_name;
 --Create index
 CREATE INDEX CONCURRENTLY idx_customer_name ON customers(customer_name);
 
----
 EXPLAIN ANALYZE 
 SELECT *
 FROM customers
@@ -347,31 +349,33 @@ ORDER BY customer_name;
 
 ---
 7.5.2
+
 SELECT 
-datname, 
-pg_size_pretty(pg_database_size(datname)) AS size 
+datname, pg_size_pretty(pg_database_size(datname)) AS size 
 FROM pg_database  
 ORDER BY pg_database_size(datname) DESC; 
 
 ---
 7.5.3
+
 SELECT relname, pg_size_pretty(pg_total_relation_size(relid)) 
 FROM pg_catalog.pg_statio_user_tables 
 ORDER BY pg_total_relation_size(relid) DESC; 
 
 ---
 7.7.1
+
 CREATE INDEX IF NOT EXISTS idx_total_amount ON orders(total_amount);
+
 SET enable_seqscan = off;
+
 EXPLAIN ANALYZE 
 SELECT DISTINCT customer_id, total_amount
 FROM orders WHERE order_date >= '2023-01-01' 
 AND total_amount >= 100 ORDER BY total_amount;
 
----
 SET enable_seqscan = on; 
 
----
 EXPLAIN ANALYZE 
 SELECT DISTINCT customer_id, total_amount
 FROM orders 
@@ -380,8 +384,11 @@ ORDER BY total_amount;
 
 ---
 7.7.2
+
 DROP INDEX idx_total_amount;
+
 CREATE INDEX IF NOT EXISTS idx_total_amount ON orders(total_amount);
+
 EXPLAIN ANALYZE 
 SELECT customer_id
 FROM orders
@@ -389,8 +396,8 @@ WHERE total_amount > (
     SELECT AVG(total_amount)
     FROM orders);
 
----
 SET enable_bitmapscan = on;
+
 EXPLAIN ANALYZE 
 SELECT customer_id
 FROM orders
@@ -400,6 +407,7 @@ WHERE total_amount > (
 
 ---
 7.7.3
+
 SET enable_indexscan = off;
 EXPLAIN ANALYZE 
 SELECT customer_id, total_amount
@@ -414,24 +422,21 @@ FROM orders
 WHERE total_amount >= 100000 AND total_amount <= 1000000;
 
 
-
 ---
 7.9
-EGIN;
 
--- Select and lock rows for update
+BEGIN;
+
 SELECT * FROM orders WHERE total_amount >= 1000 FOR UPDATE;
 
--- Perform your mass update operation here
--- Let's assume we are increasing the total_amount by 10%
 UPDATE orders SET total_amount = total_amount * 1.10 
 WHERE total_amount >= 1000;
 
--- Commit the transaction to release the locks
 COMMIT;
 
 ---
 7.10
+
 CREATE OR REPLACE PROCEDURE my_dynamic_cursor(param_value NUMERIC) AS $$
 DECLARE
     my_cursor CURSOR FOR
@@ -441,7 +446,6 @@ DECLARE
     customer_id text;
     order_date DATE;
     total_amount NUMERIC;
-
 BEGIN
     OPEN my_cursor;
     -- Fetch and process rows here
@@ -457,16 +461,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
----
 UPDATE orders
 SET total_amount = floor(random() * (100000 - 1000 + 1) + 1000)
 WHERE total_amount = 1210;
 
----
 CALL my_dynamic_cursor(1000);
 
 ---
 7.10.2
+
 PREPARE my_prepared_statement (numeric) AS
 SELECT customer_id::text, order_date, total_amount::numeric
 FROM orders
@@ -483,6 +486,7 @@ WHERE total_amount > 1000;
 
 ---
 7.11.1
+
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_customer_id 
 ON orders(customer_id);
 
@@ -494,6 +498,7 @@ ON customers(customer_name);
 
 ---
 7.11.2
+
 EXPLAIN ANALYZE 
 SELECT *
 FROM orders
@@ -501,6 +506,7 @@ WHERE order_date >= '2023-01-01' AND total_amount > 1000;
 
 ---
 7.11.3
+
 EXPLAIN ANALYZE 
 WITH total_sales AS (
      SELECT customer_id, SUM(total_amount) AS total
@@ -513,6 +519,7 @@ JOIN total_sales ON customers.customer_id = total_sales.customer_id;
 
 ---
 7.11.4
+
 EXPLAIN ANALYZE 
 SELECT * 
 FROM customers 
@@ -523,59 +530,74 @@ WHERE EXISTS (
 
 ---
 7.11.5
+
 ---C1
+
 EXPLAIN ANALYZE SELECT * FROM customers
 JOIN orders ON customers.customer_id = orders.customer_id; 
 
 ---C2
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 JOIN orders ON orders.customer_id = customers.customer_id;
 
 ---C3
+
 EXPLAIN ANALYZE SELECT * FROM orders 
 JOIN customers ON orders.customer_id = customers.customer_id;
 
 ---C4
+
 EXPLAIN ANALYZE SELECT * FROM orders 
 JOIN customers ON customers.customer_id = orders.customer_id ; 
 
 ---C5
+
 EXPLAIN ANALYZE  SELECT * FROM customers 
 LEFT JOIN orders ON customers.customer_id = orders.customer_id;
 
 ---C6
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 LEFT JOIN orders ON orders.customer_id = customers.customer_id;
 
 ---C7
+
 EXPLAIN ANALYZE SELECT * FROM orders
 LEFT JOIN customers ON orders.customer_id = customers.customer_id;
 
 ---C8
+
 EXPLAIN ANALYZE SELECT * FROM orders
 LEFT JOIN customers ON customers.customer_id = orders.customer_id ;
 
 ---C9
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 RIGHT JOIN orders ON customers.customer_id = orders.customer_id;
 
 ---C10
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 RIGHT JOIN orders ON orders.customer_id = customers.customer_id;
 
 ---C11
+
 EXPLAIN ANALYZE SELECT * FROM orders
 RIGHT JOIN customers ON orders.customer_id = customers.customer_id;
 
 --C12
+
 EXPLAIN ANALYZE SELECT * FROM orders
 RIGHT JOIN customers ON customers.customer_id = orders.customer_id ;
 
 ---C13
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 FULL JOIN orders ON customers.customer_id = orders.customer_id;
 
 ---C14
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 FULL JOIN orders ON orders.customer_id = customers.customer_id;
 
@@ -584,28 +606,34 @@ EXPLAIN ANALYZE SELECT * FROM orders
 FULL JOIN customers ON orders.customer_id = customers.customer_id;
 
 ---C16
+
 EXPLAIN ANALYZE SELECT * FROM orders
 FULL JOIN customers ON customers.customer_id = orders.customer_id ;
 
 ---C17
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 FULL OUTER JOIN orders ON customers.customer_id = orders.customer_id;
 
 ---C18
+
 EXPLAIN ANALYZE SELECT * FROM customers 
 FULL OUTER JOIN orders ON orders.customer_id = customers.customer_id;
 
 ---C19
+
 EXPLAIN ANALYZE SELECT * FROM orders
 FULL OUTER JOIN customers ON orders.customer_id = customers.customer_id;
 
 ---C20
+
 EXPLAIN ANALYZE SELECT * FROM orders
 FULL OUTER JOIN customers ON customers.customer_id = orders.customer_id ;
 
 
 ---
 7.11.6
+
 EXPLAIN ANALYZE 
 WITH sales_data AS (
     SELECT
@@ -619,7 +647,6 @@ SELECT year, month, SUM(total_amount) AS total_sales
 FROM sales_data
 GROUP BY CUBE (year, month);
 
----
 EXPLAIN ANALYZE 
 SELECT 
     EXTRACT(YEAR FROM  order_date) AS year,
@@ -632,6 +659,7 @@ ORDER BY year, month;
 
 ---
 7.12
+
 CREATE TABLE daily_sales_total AS
 SELECT
     order_date,
@@ -639,7 +667,6 @@ SELECT
 FROM orders
 GROUP BY order_date;
 
----
 CREATE TABLE monthly_sales_total AS
 SELECT
     DATE_TRUNC('month', order_date) AS month,
@@ -647,7 +674,6 @@ SELECT
 FROM orders
 GROUP BY month;
 
----
 CREATE TABLE yearly_sales_total AS
 SELECT
     DATE_TRUNC('year', order_date) AS year,
@@ -655,34 +681,29 @@ SELECT
 FROM orders
 GROUP BY year;
 
----
 SELECT order_date, total_sales 
 FROM daily_sales_total
 ORDER BY order_date;GROUP BY year;
 
----
 SELECT month, total_sales
 FROM monthly_sales_total 
 ORDER BY month;
 
----
 SELECT year, total_sales
 FROM yearly_sales_total
 ORDER BY year;
 
----
 EXPLAIN ANALYZE 
 SELECT year, total_sales FROM yearly_sales_total ORDER BY year;
 
----
 EXPLAIN ANALYZE 
 SELECT
     DATE_TRUNC('year', order_date) AS year,
     SUM(total_amount) AS total_sales
 FROM orders GROUP BY year;
 
----
 8.1.1
+
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_customers_customer_name 
 ON customers(customer_name);
 
@@ -693,6 +714,7 @@ ON orders(order_date, total_amount);
 
 ---
 8.1.2
+
 SELECT * FROM pg_stat_activity 
 WHERE query ILIKE '%CREATE INDEX%';
 
@@ -700,7 +722,9 @@ SELECT pg_cancel_backend(8044);
 
 ---
 8.2.1
+
 CREATE TEMP SEQUENCE temp_sales_id_seq START 1;
+
 CREATE TEMP SEQUENCE temp_sales_id_seq START 1;
 
 INSERT INTO sales (sale_date, amount)
@@ -715,7 +739,6 @@ SELECT
     (random() * 1000)::numeric(10, 2) AS amount
 FROM generate_series(1, 100000) AS row_number;
 
-
 INSERT INTO sales (sale_date, amount)
 SELECT
     '2022-01-01'::date + (random() * 365)::integer AS sale_date,
@@ -728,7 +751,6 @@ SELECT
     (random() * 1000)::numeric(10, 2) AS amount
 FROM generate_series(1, 100000) AS row_number;
 
--- Create Partial Index
 CREATE OR REPLACE FUNCTION current_year() 
 RETURNS integer AS 
 $$  
@@ -744,6 +766,7 @@ ON sales(sale_date, sales_id, amount) ;
 
 ---
 8.2.2
+
 SELECT 
  i.relname "Table Name",
  indexrelname "Index Name",
@@ -756,7 +779,7 @@ WHERE i.relname='sales';
 
 ---
 8.3
--- Create a sample table
+
 CREATE TABLE contacts (
     contact_id serial PRIMARY KEY,
     first_name VARCHAR(50),
@@ -772,17 +795,17 @@ ON contacts((first_name || ' ' || last_name));
 
 ---
 8.4
--- Partial Index
+
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sales_new_in_365d 
 ON sales(sale_date, sales_id, amount) 
 WHERE EXTRACT(YEAR FROM sale_date) >= (current_year() - 1);
 
--- Create Full Index with same index structure for comparison
 CREATE INDEX CONCURRENTLY IF NOT idx_sales_all 
 ON sales(sale_date, sales_id, amount) ;
 
 ---
 8.5
+
 CREATE TABLE articles (   
 id SERIAL PRIMARY KEY,   
 title TEXT NOT NULL, 
@@ -804,7 +827,7 @@ VALUES
 
 CREATE TEXT SEARCH CONFIGURATION english_fts (COPY = english);
 
-ALTER TEXT SEARCH CONFIGURATION english_fts  
+ALTER TEXT SEARCH CONFIGURATION english_fts;  
 ALTER MAPPING FOR asciiword WITH english_stem;
 
 CREATE INDEX articles_fts_idx 
@@ -816,11 +839,13 @@ WHERE to_tsvector('english_fts', title || ' ' || body) @@ to_tsquery('english_ft
 
 ---
 8.6
+
 CREATE INDEX CONCURRENTLY IF NOT idx_sales_all 
 ON sales(sale_date, sales_id, amount) ;
 
 ---
 8.7
+
 CREATE TABLE books  ( 
 book_id SERIAL PRIMARY KEY,  
 title VARCHAR(100) NOT NULL, 
@@ -835,6 +860,7 @@ USING BTREE(genre, unit_price);
 
 ---
 8.8
+
 CREATE TABLE my_long_text (     
 id SERIAL PRIMARY KEY,     
 text_column TEXT );
@@ -863,6 +889,7 @@ WHERE text_column @@ to_tsquery('suitable') AND text_column % '%suitable%';
 
 ---
 8.9
+
 CREATE TABLE my_json (id SERIAL PRIMARY KEY, data JSON );
 
 INSERT INTO my_json (data) VALUES 
@@ -884,6 +911,7 @@ WHERE data->>'name' = 'Alice';
 
 ---
 8.10
+
 CREATE INDEX idx_brin_books 
 ON books 
 USING BRIN (publication_year); 
@@ -894,6 +922,7 @@ WHERE publication_year >= 1970;
 
 ---
 8.11
+
 CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE;
 
 CREATE TABLE my_network (   
@@ -919,6 +948,7 @@ WHERE earth_box(ll_to_earth(40.7128,-74.0060), 10000) @> ll_to_earth(location_po
 
 ---
 8.12
+
 INSERT INTO  books (title, author, publication_year, genre, qty, unit_price) 
 VALUES  
 ('The Great Gatsby', 'F. Scott Fitzgerald', 1925, 'Literary Fiction', 10, 9.99), 
@@ -940,6 +970,7 @@ WHERE author IN ('F. Scott Fitzgerald','J.D. Salinger');
 
 ---
 9.1
+
 CREATE DATABASE test_db;
 
 CREATE ROLE myuser LOGIN ENCRYPTED PASSWORD 'mypassword' VALID UNTIL '2024-12-31';
@@ -949,36 +980,44 @@ ALTER ROLE myuser CONNECTION LIMIT 2;
 
 ---
 9.2
+
 CREATE SCHEMA marketing;
 GRANT ALL PRIVILEGES ON SCHEMA marketing TO myuser;
 
 ---
 9.3
+
 REVOKE ALL PRIVILEGES ON SCHEMA marketing FROM myuser;
 
 ---
 9.4
+
 ALTER DEFAULT PRIVILEGES IN SCHEMA marketing
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO myuser;
 
 ---
 9.5
+
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER ON TABLE books TO myuser;
 
 ---
 9.6
+
 REVOKE TRUNCATE ON TABLE books FROM myuser;
 
 ---
 9.7
+
 GRANT SELECT (book_id, title, author) ON books TO myuser;
 
 ---
 9.8
+
 REVOKE SELECT (author) ON books FROM myuser;
 
 ---
 9.9
+
 CREATE ROLE books_admin_group WITH LOGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE 
@@ -987,7 +1026,6 @@ ON books TO books_admin_group;
 CREATE POLICY insert_update_delete_books_policy ON books
 FOR ALL TO books_admin_group USING (true) WITH CHECK (true);
 
----
 CREATE ROLE literary_group WITH LOGIN;
 GRANT SELECT ON books TO literary_group;
 CREATE POLICY select_literary_fiction_policy ON books
@@ -997,28 +1035,35 @@ USING (genre = 'Literary Fiction');
 ALTER TABLE books ENABLE ROW LEVEL SECURITY;
 
 CREATE ROLE dystopian_group WITH LOGIN;
+
 GRANT SELECT ON books TO dystopian_group;
+
 CREATE POLICY select_dystopian_fiction_policy ON books
 FOR SELECT TO dystopian_group 
 USING (true)
 USING (genre = 'Dystopian Fiction');
 
 CREATE ROLE romantic_group WITH LOGIN;
+
 GRANT SELECT ON books TO romantic_group;
+
 CREATE POLICY select_romantic_fiction_policy ON books
 FOR SELECT TO romantic_group 
 USING (genre = 'Romantic Fiction');
 
 -- Create USER alice and assign to admin group
 CREATE USER alice WITH ENCRYPTED PASSWORD 'alice_password'; 
+
 GRANT books_admin_group TO alice;
--- Create USER peter and assign to Literary Group
+
 CREATE USER peter WITH ENCRYPTED PASSWORD 'peter_password';
+
 GRANT literary_group TO peter;
--- Create USER john and assign to Dystopian Group
+
 CREATE USER john WITH ENCRYPTED PASSWORD 'john_password';
+
 GRANT dystopian_group TO john;
--- Create USER susan and assign to Romantic Group
+
 CREATE USER susan WITH ENCRYPTED PASSWORD 'susan_password';
 GRANT romantic_group TO susan;
 
@@ -1030,17 +1075,22 @@ SELECT * FROM books;
 RESET ROLE;
 
 SET ROLE peter;
+
 SELECT * FROM books;
+
 RESET ROLE;
 
 SELECT * FROM books WHERE genre <> 'Literary Fiction';
 
 SET ROLE susan;
+
 SELECT * FROM books;
+
 RESET ROLE;
 
 ---
 9.10
+
 CREATE USER alex 
 WITH PASSWORD 'alex_password' 
 CREATEDB 
@@ -1048,6 +1098,7 @@ INHERIT VALID UNTIL '2024-12-31';
 
 ---
 9.11
+
 CREATE USER candice 
 WITH ENCRYPTED PASSWORD 'candice_password' 
 CREATEDB 
@@ -1055,22 +1106,27 @@ INHERIT VALID UNTIL '2024-12-31';
 
 ---
 9.12
+
 ALTER USER alex 
 WITH ENCRYPTED PASSWORD 'alex_new_password'; 
 
 ---
 9.13
+
 DROP USER alex;
 
 ---
 9.14
 CREATE GROUP marketing;
+
 ALTER GROUP marketing  ADD USER peter; 
+
 ALTER GROUP marketing 
 DROP USER peter; 
 
 ---
 9.15
+
 SELECT usename, ssl 
 FROM pg_stat_ssl JOIN pg_user 
 ON pg_stat_ssl.pid = pg_backend_pid() 
@@ -1078,6 +1134,7 @@ WHERE usename = 'postgres';
 
 ---
 9.16
+
 ALTER ROLE peter 
 CONNECTION LIMIT 1; 
 
@@ -1086,13 +1143,15 @@ CONNECTION LIMIT DEFAULT;
 
 ---
 9.18
+
 SELECT  pid,  usename,  application_name, client_addr, backend_start 
 FROM pg_stat_activity 
 WHERE usename = 'peter';
 
 ---
 10.1
-EELECT d.datname as database, r.rolname as owner
+
+SELECT d.datname as database, r.rolname as owner
 FROM pg_catalog.pg_database d, pg_catalog.pg_roles r 
 WHERE d.datdba = r.oid;
 
@@ -1118,21 +1177,25 @@ ORDER BY 1;
 
 ---
 10.2
+
 SELECT name, setting, unit, short_desc 
 FROM pg_settings 
 WHERE name IN ('shared_buffers', 'work_mem', 'maintenance_work_mem', 'effective_cache_size', 'wal_buffers');
 
 ---
 10.3
+
 SELECT datname, blks_read, blks_hit, temp_files, temp_bytes FROM pg_stat_database;
 
 ---
 10.4
+
 SELECT pg_size_pretty(pg_database_size('my_db')) 
 AS database_size;
 
 ---
 10.5
+
 SELECT * FROM pg_stat_activity;
 
 SELECT COUNT(*) FROM pg_stat_activity;
@@ -1150,6 +1213,7 @@ WHERE NOT l.granted;
 
 ---
 10.6
+
 SELECT * FROM pg_locks WHERE NOT granted;
 
 SELECT a.pid AS "Blocked PID",
@@ -1162,6 +1226,7 @@ WHERE NOT a.granted;
 
 ---
 10.7
+
 SELECT 
 pg_last_wal_receive_lsn(), 
 pg_last_wal_replay_lsn(),       
@@ -1484,7 +1549,7 @@ SELECT lo_export(data, '/tmp/my_big_file.zip')
 FROM large_objects 
 WHERE id = 1; 
 
-#
+
 diff /appl/my_big_file.zip /tmp/my_big_file.zip 
 
 
@@ -1523,19 +1588,33 @@ data BYTEA);
 pip3 install psycopg2
 
 nano /appl/load_image.py
+
 import psycopg2 from psycopg2 
+
 from psycopg2 import sql
+
 conn = psycopg2.connect(     
+
    host="localhost",     
+   
    database="my_db",     
+   
    user="my_user",     
+   
    password="my_password" ) 
+
 with open("/appl/image.png", "rb") as f:     
+
    image_data = f.read() 
+
 with conn.cursor() as cur:     
+
    query = sql.SQL("INSERT INTO my_image (name, data) VALUES (%s, %s)")   
+ 
    cur.execute(query, ("/appl/image.png", psycopg2.Binary(image_data)))     
+   
    conn.commit() 
+
 conn.close()
 
 python3 load_image.py
@@ -1627,8 +1706,8 @@ id SERIAL PRIMARY KEY, content TEXT );
 CREATE TEXT SEARCH CONFIGURATION english (COPY= simple );
 
 CREATE TEXT SEARCH DICTIONARY my_english_st (
-  TEMPLATE = pg_catalog.simple, 
-  STOPWORDS = english );
+TEMPLATE = pg_catalog.simple, 
+STOPWORDS = english );
 
 CREATE EXTENSION pg_trgm;
 
@@ -1754,18 +1833,31 @@ nano pg_hba.conf
 hostssl  all  all   192.168.0.0/24   md5 
 
 nano /etc/repmgr.conf 
+
 node_id=2
+
 node_name=node2
+
 conninfo='host=node1_host user=repmgr_user dbname=repmgr_db password=repmgr_password connect_timeout=2'
+
 data_directory='/appl/pgsql/17/data/'
+
 use_replication_slots=yes
+
 ssh_options='-q -o BatchMode=yes -o ConnectTimeout=10'
+
 reconnect_attempts=3
+
 reconnect_interval=5
+
 failover=automatic
+
 promote_command='repmgr standby promote -f /etc/repmgr.conf --log-to-file'
+
 follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
+
 log_file='/var/log/repmgr/repmgr.log'
+
 log_level=INFO
 log_status_interval=300
 
@@ -1774,9 +1866,13 @@ log_status_interval=300
 13.3
 
 nano postgresql.conf
+
 wal_level = logical
+
 max_replication_slots = 3
+
 max_wal_senders = 3
+
 
 /usr/pgsql-17/bin/pg_ctl -D /appl/pgsql/17/data -l /appl/logs/pgsql/pg_logfile restart
 
@@ -1799,14 +1895,22 @@ SELECT * from books WHERE book_id = 13;
 13.4
 
 nano postgresql.conf
+
 wal_level = replica  # or 'logical' 
+
 archive_mode = on
+
 archive_command = 'cp %p /path_to_wal_archive/%f'  
+
 pg_basebackup -h localhost -D /appl/pgsql_pitr/17/data -U replication_user -P -Fp -Xs -R 
 
+
 nano /appl/pgsql_pitr/17/data/recovery.conf
+
 restore_command = 'cp /path_to_wal_archive/%f %p'  
+
 recovery_target_time = 'YYYY-MM-DD HH:MM:SS'  
+
 recovery_target_action = 'pause'  
 
 
@@ -2095,6 +2199,7 @@ CREATE EXTENSION IF NOT EXISTS anon CASCADE;
 SELECT anon.start_dynamic_masking();
 
 CREATE ROLE test01 LOGIN; 
+
 SECURITY LABEL FOR anon ON ROLE test01 IS 'MASKED'; 
 
 CREATE TABLE info (
