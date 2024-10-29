@@ -52,24 +52,6 @@ ROLLBACK;
 -- Check if data exists 
 SELECT * FROM demo_table;
 
----
-5.20.1
-# Add or modify the following lines in postgresql.conf 
-
-cd /appl/pgsql/17/data
-
-nano postgresql.conf 
-###
-log_destination = 'stderr'
-logging_collector = on
-log_directory = '/appl/logs/pgsql/'
-log_filename = 'postgresql-%d.log'
-log_rotation_age = 1d
-log_rotation_size = 0
-log_truncate_on_rotation = on
-log_line_prefix  = '%m [%p] [%a] [%d] [%h] [%r] [%i] [%e] [%x]'
-log_statement = 'ddl'
-###
 
 ---
 6.1
