@@ -13,7 +13,8 @@ https://www.amazon.com/PostgreSQL-DBA-v17-v16-Administrators/dp/B0DL2DGKFN
 </br>
 </br>
 The "PostgreSQL DBA 17 (2025 Edition)" book's Kindle Edition:</br>
-[https://www.amazon.com/PostgreSQL-DBA-v16-Administrators-Availablity-ebook/dp/B0CN3HYFZJ
+https://www.amazon.com/PostgreSQL-DBA-v17-v16-Administrators-ebook/dp/B0DKY2DNZL
+
 
 </br>
 </br>
