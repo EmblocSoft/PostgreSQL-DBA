@@ -286,7 +286,7 @@ SELECT * FROM orders
 ORDER BY total_amount;
 
 ---R5
-XPLAIN ANALYZE 
+EXPLAIN ANALYZE 
 SELECT *
 FROM orders
 WHERE order_date >= '2023-01-01' AND total_amount >=100
