@@ -23,6 +23,9 @@ https://www.amazon.com/PostgreSQL-DBA-v17-v16-Administrators-ebook/dp/B0DKY2DNZL
 Important Note 1: The following commands are FOR INFORMATION ONLY
 
 ---
+1.x to 4.x please refert to the book
+
+---
 5.10.1
 
 CREATE TABLE demo_table (
