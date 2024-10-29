@@ -7,12 +7,13 @@
 </br>
 </br>
 The "PostgreSQL DBA 17 (2025 Edition)" book's URL:</br>
-https://www.amazon.com/PostgreSQL-DBA-v16-v15-Administrators/dp/B0CN5FD1M8
+https://www.amazon.com/PostgreSQL-DBA-v17-v16-Administrators/dp/B0DL2DGKFN
+
 
 </br>
 </br>
-The "PostgreSQL DBA 16 (2024 Edition)" book's Kindle Edition:</br>
-https://www.amazon.com/PostgreSQL-DBA-v16-Administrators-Availablity-ebook/dp/B0CN3HYFZJ
+The "PostgreSQL DBA 17 (2025 Edition)" book's Kindle Edition:</br>
+[https://www.amazon.com/PostgreSQL-DBA-v16-Administrators-Availablity-ebook/dp/B0CN3HYFZJ
 
 </br>
 </br>
